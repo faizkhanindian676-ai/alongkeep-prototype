@@ -1,3 +1,3 @@
-# Alongkeep — interactive prototype (v5.1)
+# AlongKeep — interactive prototype
 
-Clickable design prototype of the Alongkeep app (warranty, insurance, AMC and home services in one place). Open `index.html` or the GitHub Pages URL. Needs internet for fonts, Three.js and placeholder photos.
+Clickable prototype of the AlongKeep app. Open the GitHub Pages link on a phone and use **Add to Home screen** to run it full screen like an app. Sample data only.
