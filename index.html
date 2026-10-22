@@ -1,0 +1,925 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<title>Alongkeep v5 — people, things, home (professional + homely)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.170.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.170.0/examples/jsm/"}}</script>
+<style>
+:root{
+  --paper:#FAF7F2;--card:#FFFFFF;--line:rgba(31,42,68,.08);--line2:rgba(31,42,68,.14);
+  --ink:#1F2A44;--ink2:#5B6478;--ink3:#8A93A6;
+  --teal:#0F766E;--teal-bright:#2DD4BF;--mint:#DDF5F1;--sun:#FFC53D;--sun-soft:#FFF3D1;--coral:#FF6B6B;--coral-soft:#FFE6E2;--grape:#7C5CFF;--grape-deep:#5B3DF5;--grape-soft:#EEE9FF;--sky:#60A5FA;--sky-soft:#E3EEFF;
+  --twilight:linear-gradient(135deg,#8B6CFF 0%,#5B3DF5 100%);
+  --sunset:linear-gradient(135deg,#FFB85C 0%,#FF7A59 55%,#FF5C8A 100%);
+  --night:#0F1A2E;
+  --font:'Manrope',system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--font);background:#E8E4DD;color:var(--ink);-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+.stage{display:flex;min-height:100vh}
+.side{width:270px;flex:none;padding:24px 18px;background:#F3EFE8;border-right:1px solid #DDD6CB;position:sticky;top:0;height:100vh;overflow:auto}
+.side h1{font-size:15px;margin:0 0 6px}
+.side p{font-size:12px;color:var(--ink2);line-height:1.5;margin:0 0 12px}
+.side .grp{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin:12px 0 4px}
+.side a{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--ink2);padding:6px 8px;border-radius:9px;cursor:pointer;text-decoration:none}
+.side a i{width:20px;font-size:10.5px;font-weight:800;color:var(--ink3)}
+.side a.on,.side a:hover{background:#fff;color:var(--grape-deep)}
+.side .tog{display:flex;gap:8px;margin:12px 0 6px}
+.side button{font:inherit;font-size:12px;font-weight:700;padding:7px 11px;border-radius:10px;border:1px solid var(--line2);background:transparent;color:var(--ink);cursor:pointer}
+.side button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.canvas{flex:1;display:flex;justify-content:center;align-items:flex-start;padding:40px 24px 80px;gap:28px 24px;flex-wrap:wrap}
+.phone{width:390px;height:844px;background:#15151A;border-radius:50px;padding:12px;box-shadow:0 40px 90px rgba(20,16,10,.45),0 0 0 1px #2A2A33;flex:none;position:relative}
+.app{position:relative;width:100%;height:100%;border-radius:40px;overflow:hidden;background:var(--paper)}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;background:var(--paper)}
+.screen.on{display:flex}
+.screen.leave{animation:leave .3s cubic-bezier(.2,.8,.2,1) forwards}
+.screen.enter{animation:enter .36s cubic-bezier(.2,.8,.2,1)}
+@keyframes enter{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
+@keyframes leave{to{opacity:0;transform:translateX(-18px)}}
+body.grid .side{display:none}
+body.grid .screen{display:flex}
+.cap{position:absolute;left:0;right:0;bottom:-30px;text-align:center;font-size:12px;color:var(--ink3);font-weight:700}
+body.grid .phone{margin-bottom:34px}
+
+/* chrome */
+.sb{height:48px;display:flex;align-items:center;justify-content:space-between;padding:6px 26px 0;font-size:13px;font-weight:700;flex:none;position:absolute;left:0;right:0;top:0;z-index:5;color:var(--ink)}
+.sb.w{color:#fff}
+.sb .bat{display:inline-block;width:22px;height:11px;border:1.5px solid currentColor;border-radius:3.5px;position:relative;vertical-align:-1px;margin-left:6px;opacity:.9}
+.sb .bat:after{content:"";position:absolute;inset:2px;background:currentColor;border-radius:1.5px}
+.hi{height:22px;flex:none;display:flex;align-items:center;justify-content:center;position:relative;z-index:3}
+.hi:after{content:"";width:134px;height:5px;border-radius:3px;background:rgba(31,42,68,.3)}
+.hi.w:after{background:rgba(255,255,255,.5)}
+.content{flex:1;overflow:auto;scrollbar-width:none;position:relative}
+.content::-webkit-scrollbar{display:none}
+.pad{padding:0 20px}
+.ic{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic.s{width:18px;height:18px}
+.top{display:flex;align-items:center;gap:10px;padding:56px 16px 8px}
+.top .t{flex:1;font-size:17px;font-weight:800;letter-spacing:-.01em;text-align:center}
+.ib{width:40px;height:40px;border-radius:50%;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;box-shadow:0 4px 12px rgba(31,42,68,.08);flex:none}
+.ib.glass{background:rgba(255,255,255,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.ib.dark{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.3);color:#fff;backdrop-filter:blur(10px)}
+.h1{font-size:27px;font-weight:800;letter-spacing:-.025em;line-height:1.12;margin:4px 0 6px}
+.sub{font-size:14.5px;color:var(--ink2);line-height:1.45;margin:0 0 16px}
+.sec{padding:22px 20px 10px;font-size:15px;font-weight:800;letter-spacing:-.01em}
+.sec span{font-weight:800;color:#8A4B00;font-size:12px;margin-left:8px;background:var(--sun-soft);border-radius:999px;padding:3px 9px;vertical-align:2px}
+.note{font-size:12.5px;color:var(--ink3);line-height:1.45}
+
+/* buttons */
+.btn{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:56px;border-radius:18px;background:var(--grape-deep);color:#fff;font-weight:800;font-size:15.5px;cursor:pointer;padding:8px 8px 8px 18px;box-shadow:0 12px 28px rgba(91,61,245,.26),inset 0 1px 0 rgba(255,255,255,.22);position:relative;overflow:hidden}
+.btn.sun{background:var(--sunset);box-shadow:0 14px 32px rgba(255,122,89,.35),inset 0 1px 0 rgba(255,255,255,.4)}
+.btn .lbl{display:flex;align-items:center;gap:10px}
+.btn .chipi{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.24);display:flex;align-items:center;justify-content:center;flex:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+.btn .chipi .ic{width:20px;height:20px;stroke-width:2.4}
+.btn.sun:after{content:"";position:absolute;left:-40%;top:-60%;width:60%;height:220%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.25),transparent);transform:skewX(-20deg);animation:shine 5s ease-in-out 1.5s infinite}
+@keyframes shine{0%,70%{left:-40%}100%{left:120%}}
+.btn:active{transform:scale(.98)}
+.btn.tw{background:var(--twilight);box-shadow:0 14px 32px rgba(91,61,245,.3),inset 0 1px 0 rgba(255,255,255,.3)}
+.btn.ghost{background:#fff;color:var(--grape-deep);border:1.5px solid var(--grape-soft);box-shadow:0 6px 16px rgba(31,42,68,.06)}
+.btn.ghost .chipi{background:var(--grape-soft)} .btn.ghost:after{display:none}
+.btn.white{background:#fff;color:#B42318;box-shadow:0 10px 24px rgba(0,0,0,.18)} .btn.white .chipi{background:var(--coral-soft)} .btn.white:after{display:none}
+.btn.sm{min-height:46px;font-size:14px;border-radius:14px;padding:6px 6px 6px 14px} .btn.sm .chipi{width:34px;height:34px} .btn.sm .chipi .ic{width:17px;height:17px}
+.btns{display:flex;gap:8px} .btns .btn{flex:1}
+.cta{flex:none;padding:10px 16px 8px;position:relative;z-index:3;background:linear-gradient(180deg,rgba(250,247,242,0),rgba(250,247,242,.96) 40%)}
+.link{font-size:13px;font-weight:800;color:var(--grape-deep);text-align:center;margin-top:12px}
+
+/* photo hero */
+.phero{position:relative;overflow:hidden;flex:none}
+.phero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.phero .veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,26,46,.35) 0%,rgba(15,26,46,0) 35%,rgba(15,26,46,.1) 60%,rgba(15,26,46,.88) 100%)}
+.phero .txt{position:absolute;left:20px;right:20px;bottom:18px;color:#fff;z-index:2}
+.phero .k{font-size:13px;font-weight:700;opacity:.85}
+.phero .nm{font-size:26px;font-weight:800;letter-spacing:-.025em;line-height:1.1;margin-top:2px}
+.phero .md{font-size:13.5px;font-weight:600;opacity:.9;margin-top:5px;line-height:1.4}
+.phero .bar{position:absolute;left:16px;right:16px;top:56px;display:flex;justify-content:space-between;z-index:3}
+
+/* cards */
+.card{margin:14px 16px 0;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:16px;box-shadow:0 10px 30px rgba(31,42,68,.06)}
+.card.flat{box-shadow:none;background:transparent;border:1.5px dashed var(--line2)}
+.row{display:flex;align-items:center;gap:12px}
+.grow{flex:1;min-width:0}
+.nm{font-size:15px;font-weight:800;letter-spacing:-.01em}
+.ev{font-size:13px;color:var(--ink2);margin-top:2px;line-height:1.35}
+.pill{font-size:11.5px;font-weight:800;padding:6px 11px;border-radius:999px;background:#EEF1F6;color:var(--ink2);flex:none}
+.pill.g{color:#0B5A54;background:var(--mint)} .pill.b{color:var(--grape-deep);background:var(--grape-soft)} .pill.a{color:#8A4B00;background:var(--sun-soft)} .pill.r{color:#B42318;background:var(--coral-soft)}
+.cov{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.cov:first-child{border-top:0;padding-top:0} .cov:last-child{padding-bottom:0}
+.cov .dot{width:9px;height:9px;border-radius:50%;flex:none}
+.cov .t{font-size:14.5px;font-weight:700} .cov .m{font-size:12.5px;color:var(--ink2);margin-top:1px}
+.face{width:44px;height:44px;border-radius:50%;object-fit:cover;flex:none;border:2px solid #fff;box-shadow:0 0 0 2.5px var(--ringc,#14B8A6),0 4px 10px rgba(31,42,68,.14)}
+.face.c1{--ringc:#14B8A6} .face.c2{--ringc:#FF6B6B} .face.c3{--ringc:#7C5CFF}
+.people{display:flex;gap:14px;padding:0 20px}
+.pp{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--ink2);width:64px;text-align:center}
+.pp .im{width:56px;height:56px;border-radius:50%;position:relative}
+.pp img{width:56px;height:56px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 0 0 2.5px var(--ringc,#14B8A6),0 6px 16px rgba(31,42,68,.14)}
+.pp.c1{--ringc:#14B8A6} .pp.c2{--ringc:#FF6B6B} .pp.c3{--ringc:#7C5CFF}
+.pp .ok{position:absolute;right:-2px;bottom:-2px;width:20px;height:20px;border-radius:50%;background:var(--teal);border:2px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff}
+.pp .ok .ic{width:11px;height:11px;stroke-width:3}
+.rowi{display:flex;align-items:center;gap:12px;padding:10px 20px;cursor:pointer}
+.rowi .th{width:46px;height:46px;border-radius:14px;overflow:hidden;flex:none;background:var(--mint);display:flex;align-items:center;justify-content:center;color:var(--ink)}
+.rowi .th img{width:100%;height:100%;object-fit:cover}
+.rowi .th svg{width:30px;height:30px}
+.rowi .nm{font-size:14.5px;font-weight:700} .rowi .ev{font-size:12.5px;color:var(--ink2);margin-top:1px}
+.rowi .st{font-size:12px;font-weight:800;color:#0B5A54;background:var(--mint);border-radius:999px;padding:5px 10px;display:flex;align-items:center;gap:6px}
+.rowi .st:before{content:"";width:6px;height:6px;border-radius:50%;background:var(--teal-bright)}
+.famcard{margin:14px 20px 0;border-radius:20px;overflow:hidden;position:relative;height:120px;cursor:pointer}
+.famcard img{width:100%;height:100%;object-fit:cover;object-position:center 30%}
+.famcard .v{position:absolute;inset:0;background:linear-gradient(90deg,rgba(15,26,46,.75),rgba(15,26,46,.1))}
+.famcard .t{position:absolute;left:16px;bottom:14px;color:#fff}
+.famcard .t b{display:block;font-size:16px} .famcard .t small{font-size:12.5px;opacity:.9}
+
+/* rail cards */
+.rail{display:flex;gap:12px;overflow-x:auto;padding:0 20px 6px;scroll-snap-type:x mandatory;scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.wc{flex:none;width:292px;scroll-snap-align:start;background:var(--card);border-radius:22px;padding:14px;box-shadow:0 10px 30px rgba(31,42,68,.08),0 1px 0 rgba(31,42,68,.04);cursor:pointer;border:1px solid var(--line)}
+.wc .ph{height:112px;border-radius:14px;overflow:hidden;position:relative;margin-bottom:12px}
+.wc .ph img{width:100%;height:100%;object-fit:cover;display:block}
+.wc .ph .tag{position:absolute;left:10px;top:10px;background:rgba(255,255,255,.92);border-radius:999px;padding:5px 10px;font-size:11.5px;font-weight:800;display:flex;align-items:center;gap:6px}
+.wc .ph .tag i{width:7px;height:7px;border-radius:50%}
+.wc .nm{font-size:15.5px}
+.ring{width:60px;height:60px;flex:none;position:relative;display:flex;align-items:center;justify-content:center}
+.ring svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.ring b{font-size:19px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.ring small{display:block;font-size:9.5px;font-weight:700;color:var(--ink3);text-align:center;margin-top:1px}
+.wc .act{margin-top:12px;display:flex;align-items:center;justify-content:space-between;background:var(--grape-deep);color:#fff;border-radius:16px;padding:9px 9px 9px 16px;font-weight:800;font-size:14px;box-shadow:0 10px 24px rgba(91,61,245,.22),inset 0 1px 0 rgba(255,255,255,.22);position:relative;overflow:hidden}
+.wc .act.sun:after{content:"";position:absolute;left:-40%;top:-60%;width:60%;height:220%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.22),transparent);transform:skewX(-20deg);animation:shine 4s ease-in-out 2s infinite}
+.wc .act .chipi{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;flex:none}
+.wc .act .chipi .ic{width:18px;height:18px;stroke-width:2.4}
+.wc .act.sun{background:var(--sunset);box-shadow:0 10px 24px rgba(255,122,89,.32),inset 0 1px 0 rgba(255,255,255,.35)}
+.wc .act.ghost{background:var(--grape-soft);color:var(--grape-deep);box-shadow:none} .wc .act.ghost .chipi{background:#fff} .wc .act.ghost:after{display:none}
+
+/* tab bar + fab */
+.tabbar{flex:none;display:flex;margin:0 14px 10px;background:rgba(255,255,255,.86);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line2);border-radius:22px;padding:8px 6px;position:relative;z-index:3;box-shadow:0 16px 40px rgba(31,42,68,.14)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10.5px;font-weight:700;color:var(--ink3);padding:4px 0;cursor:pointer;border-radius:16px}
+.tab.on{color:var(--grape-deep);background:var(--grape-soft)}
+.fab{position:absolute;right:20px;bottom:98px;width:56px;height:56px;border-radius:50%;background:var(--sunset);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 14px 30px rgba(255,122,89,.4),inset 0 1px 0 rgba(255,255,255,.4);z-index:4;cursor:pointer}
+.fab .ic{stroke-width:2.6;width:24px;height:24px}
+
+/* 3D hero (home) */
+.hero3d{position:relative;height:300px;overflow:hidden;flex:none;margin:0 16px;border-radius:24px;background:linear-gradient(180deg,#F3E9D8 0%,#FBF6EE 70%,#FBF6EE 100%);box-shadow:inset 0 0 0 1px rgba(31,42,68,.06)}
+.hdr2{display:flex;align-items:center;gap:10px;padding:60px 20px 0}
+.hdr2 .eve{font-size:13px;font-weight:700;color:var(--ink2)}
+.hdr2 .who{font-size:22px;font-weight:800;letter-spacing:-.025em;line-height:1.1}
+.emgpill{display:flex;align-items:center;gap:6px;background:var(--coral-soft);color:#B42318;border-radius:999px;padding:9px 12px;font-weight:800;font-size:12.5px;cursor:pointer;flex:none;box-shadow:0 4px 12px rgba(255,107,107,.18)}
+.emgpill .ic{width:16px;height:16px;stroke-width:2.4}
+.overview{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:8px;margin:14px 16px 0}
+.ov{background:#fff;border:1px solid var(--line);border-radius:18px;padding:12px;box-shadow:0 8px 24px rgba(31,42,68,.06);cursor:pointer;min-height:96px}
+.ov .k{font-size:11.5px;font-weight:800;color:var(--ink3)}
+.ov b{display:block;font-size:22px;font-weight:800;letter-spacing:-.03em;margin-top:6px;line-height:1}
+.ov small{display:block;font-size:11.5px;color:var(--ink2);margin-top:4px;line-height:1.3}
+.facesm{display:flex;margin-top:6px} .facesm img{width:22px;height:22px;border-radius:50%;object-fit:cover;border:1.5px solid #fff;margin-left:-6px} .facesm img:first-child{margin-left:0}
+.sec span.hintx{font-weight:600;color:var(--ink3);font-size:12px;background:none;padding:0;vertical-align:0}
+.ticket .stub.grey{background:#EEF1F6;color:var(--ink2)}
+.hero3d canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block}
+.hero3d .fade{display:none}
+.hero3d .greet{position:absolute;left:20px;bottom:30px;z-index:3}
+.hero3d .eve{font-size:13px;font-weight:700;color:var(--ink2)}
+.hero3d .who{font-size:26px;font-weight:800;letter-spacing:-.025em;line-height:1.1}
+.faces{position:absolute;right:20px;bottom:14px;display:flex;z-index:3}
+.faces img{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid #fff;margin-left:-10px;box-shadow:0 4px 10px rgba(31,42,68,.2)}
+.faces img:first-child{margin-left:0}
+.hot{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;z-index:4;opacity:0;transition:opacity .4s}
+.hot.show{opacity:1}
+.hot .chip{background:rgba(255,255,255,.96);border-radius:999px;padding:5px 10px 5px 8px;display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;white-space:nowrap;box-shadow:0 10px 24px rgba(31,42,68,.22);color:var(--ink)}
+.hot .chip b{font-size:14px;letter-spacing:-.02em} .hot .chip i{width:8px;height:8px;border-radius:50%;flex:none}
+.hot .stem{width:1.5px;height:16px;background:linear-gradient(180deg,rgba(31,42,68,.5),transparent)}
+.hot.a .chip b{color:#B45309} .hot.a .chip i{background:#F59E0B} .hot.b .chip b{color:#1D4ED8} .hot.b .chip i{background:#60A5FA}
+.hero3d .hint{position:absolute;left:20px;bottom:10px;font-size:11.5px;font-weight:700;color:var(--ink3);z-index:3}
+.lead{padding:4px 20px 0}
+.lead .big{font-size:24px;font-weight:800;letter-spacing:-.025em;line-height:1.15}
+.lead .big em{font-style:normal;color:#E86A3C}
+.lead .sub{font-size:14px;color:var(--ink2);margin-top:6px;line-height:1.45}
+
+/* 3D product */
+.p3d{position:relative;height:330px;overflow:hidden;flex:none;background:radial-gradient(80% 60% at 50% 70%,#FFE9D6 0%,#FBF4EA 55%,var(--paper) 100%)}
+.p3d canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block}
+.p3d .bar{position:absolute;left:16px;right:16px;top:56px;display:flex;justify-content:space-between;z-index:3}
+.p3d .txt{position:absolute;left:20px;right:20px;bottom:16px;z-index:3}
+.p3d .nm{font-size:26px;font-weight:800;letter-spacing:-.025em;line-height:1.1}
+.p3d .md{font-size:13.5px;font-weight:600;color:var(--ink2);margin-top:4px}
+.p3d .drag{position:absolute;right:20px;bottom:18px;font-size:11.5px;font-weight:700;color:var(--ink3);z-index:3}
+.p3d:after{content:"";position:absolute;left:0;right:0;bottom:0;height:110px;background:linear-gradient(180deg,rgba(250,247,242,0),rgba(250,247,242,.92));pointer-events:none;z-index:2}
+
+/* dark ticket */
+.dcard{margin:8px 16px 0;position:relative;z-index:2;border-radius:24px;padding:18px 18px 0;color:#fff;background:radial-gradient(70% 60% at 15% 0%,rgba(124,92,255,.35),transparent 70%),radial-gradient(50% 40% at 100% 100%,rgba(255,122,89,.25),transparent 70%),linear-gradient(180deg,#1B2746,var(--night));box-shadow:0 24px 50px rgba(15,26,46,.3)}
+.dcard.lift{margin-top:-22px}
+.dcard .lab{font-size:13px;font-weight:700;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:8px}
+.dcard .lab i{width:8px;height:8px;border-radius:50%;background:var(--sun);box-shadow:0 0 10px var(--sun)}
+.dcard .perf{position:relative;height:0;border-top:2px dashed rgba(255,255,255,.22);margin:18px -18px 0}
+.dcard .perf:before,.dcard .perf:after{content:"";position:absolute;top:-13px;width:26px;height:26px;border-radius:50%;background:var(--paper)}
+.dcard .perf:before{left:-13px} .dcard .perf:after{right:-13px}
+.dcard .stub{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 0 18px}
+.dcard .num{display:flex;align-items:baseline;gap:8px;flex:none}
+.dcard .num b{font-size:58px;font-weight:800;letter-spacing:-.045em;line-height:1;background:linear-gradient(90deg,#FFE08A,#FFB457);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.dcard .num b.money{font-size:40px}
+.dcard .num span{font-size:14px;font-weight:700;color:rgba(255,255,255,.75);max-width:60px;line-height:1.15}
+.track{position:relative;height:8px;border-radius:999px;background:rgba(255,255,255,.14);margin-top:16px}
+.track i{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:999px;background:linear-gradient(90deg,#2DD4BF 0%,#8B6CFF 45%,#FF7A59 80%,#FFC53D 100%);box-shadow:0 0 16px rgba(255,122,89,.4);transition:width 1.1s cubic-bezier(.2,.8,.2,1)}
+.track b{position:absolute;top:50%;left:0;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.18),0 4px 14px rgba(0,0,0,.4);transform:translate(-50%,-50%);transition:left 1.1s cubic-bezier(.2,.8,.2,1)}
+.ends{display:flex;justify-content:space-between;margin-top:10px;font-size:12.5px;color:rgba(255,255,255,.65)}
+.ends b{display:block;color:#fff;font-size:14px}
+.fc{display:flex;gap:10px;align-items:flex-start;background:rgba(255,197,61,.12);border:1px solid rgba(255,197,61,.35);border-radius:14px;padding:11px 12px;font-size:13px;font-weight:600;line-height:1.4;color:#FFF1C9;max-width:180px}
+.fc .ic{color:var(--sun);margin-top:1px}
+
+/* light ticket (covers list) */
+.ticket{margin:10px 16px 0;background:#fff;border-radius:20px;display:flex;overflow:hidden;box-shadow:0 10px 30px rgba(31,42,68,.07);border:1px solid var(--line);cursor:pointer;position:relative}
+.ticket .main{flex:1;padding:14px 14px 14px 16px;min-width:0}
+.ticket .stub{width:92px;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;border-left:2px dashed var(--line2);position:relative;color:#fff}
+.ticket .stub:before,.ticket .stub:after{content:"";position:absolute;left:-10px;width:18px;height:18px;border-radius:50%;background:var(--paper)}
+.ticket .stub:before{top:-9px} .ticket .stub:after{bottom:-9px}
+.ticket .stub b{font-size:26px;font-weight:800;letter-spacing:-.04em;line-height:1}
+.ticket .stub small{font-size:10.5px;font-weight:800;opacity:.85;margin-top:2px}
+.ticket .stub.coral{background:linear-gradient(160deg,#FF8A7A,#FF5C8A)} .ticket .stub.grape{background:var(--twilight)} .ticket .stub.sky{background:linear-gradient(160deg,#6FB4FF,#4C7DF0)} .ticket .stub.sun{background:linear-gradient(160deg,#FFC53D,#FF8E53);color:#5A3300}
+.ticket .k{font-size:12px;font-weight:700;color:var(--ink2)}
+.ticket .nm{margin-top:2px}
+.ticket .m{font-size:12.5px;color:var(--ink2);margin-top:4px;line-height:1.4}
+.helper{display:flex;align-items:center;gap:12px;margin:14px 16px 0;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 14px;box-shadow:0 10px 30px rgba(31,42,68,.06)}
+.helper .t{font-size:14px;font-weight:800} .helper .m{font-size:12.5px;color:var(--ink2);margin-top:1px}
+.helper .go{width:36px;height:36px;border-radius:50%;background:var(--coral-soft);color:#B42318;display:flex;align-items:center;justify-content:center;flex:none}
+.helper .go .ic{width:18px;height:18px;stroke-width:2.4}
+
+/* forms */
+.field{margin:0 0 10px}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--ink2);margin-bottom:5px}
+.field .v{background:#fff;border:1.5px solid var(--line2);border-radius:14px;padding:13px 14px;font-size:15px;font-weight:700;display:flex;align-items:center;gap:10px}
+.field .v.ok{border-color:#9FE3D4;background:#F3FCF9} .field .v.warn{border-color:#FFD98A;background:#FFFBF0} .field .v.f{border-color:var(--grape);box-shadow:0 0 0 4px var(--grape-soft)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.otp{display:flex;gap:8px;margin:14px 0 6px}
+.otp span{flex:1;height:54px;border:1.5px solid var(--line2);border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px}
+.otp span.f{border-color:var(--grape);box-shadow:0 0 0 4px var(--grape-soft)}
+.toggle{width:44px;height:24px;border-radius:999px;background:#CBD5E1;position:relative;flex:none}
+.toggle:after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.toggle.on{background:var(--grape)} .toggle.on:after{left:22px}
+.chips2{display:flex;flex-wrap:wrap;gap:8px;padding:0 20px;margin-top:2px}
+.chips2 span{font-size:13.5px;font-weight:700;background:#fff;border:1.5px solid var(--line2);border-radius:999px;padding:9px 13px;cursor:pointer}
+.chips2 span.on{border-color:var(--grape);background:var(--grape-soft);color:var(--grape-deep)}
+.pick{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 20px}
+.pick div{background:#fff;border:2px solid var(--line);border-radius:18px;padding:14px 6px 12px;text-align:center;position:relative;cursor:pointer}
+.pick div svg{width:36px;height:36px;display:block;margin:0 auto 6px}
+.pick span{display:block;font-size:12px;font-weight:800;color:var(--ink2);line-height:1.2}
+.pick .on{border-color:var(--grape);background:var(--grape-soft)}
+.pick .on:after{content:"✓";position:absolute;top:6px;right:9px;font-size:12px;font-weight:800;color:var(--grape-deep)}
+.catcard{margin:0 20px 12px;height:112px;border-radius:20px;overflow:hidden;position:relative;cursor:pointer;box-shadow:0 10px 24px rgba(31,42,68,.1)}
+.catcard img{width:100%;height:100%;object-fit:cover}
+.catcard .v{position:absolute;inset:0;background:linear-gradient(90deg,rgba(15,26,46,.8) 0%,rgba(15,26,46,.25) 65%,rgba(15,26,46,0))}
+.catcard .t{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#fff;max-width:230px}
+.catcard .t b{display:block;font-size:17px;letter-spacing:-.01em} .catcard .t small{font-size:12.5px;opacity:.9;line-height:1.35;display:block;margin-top:3px}
+.catcard .go{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;color:#fff}
+.cam{height:300px;border-radius:24px;background:#15181F;position:relative;overflow:hidden;margin:4px 20px 12px}
+.cam .doc{position:absolute;left:46px;right:46px;top:34px;bottom:34px;background:#fff;border-radius:6px;padding:18px;transform:rotate(-2deg);box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.cam .doc i{display:block;height:7px;background:#E2E8F0;border-radius:3px;margin-bottom:10px}
+.cam .doc i.w{width:55%} .cam .doc i.m{width:80%} .cam .doc i.s{width:35%}
+.cam .frame{position:absolute;inset:18px;border:2px solid rgba(255,255,255,.85);border-radius:16px}
+.cam .frame:before,.cam .frame:after{content:"";position:absolute;width:26px;height:26px;border:3px solid var(--sun);border-radius:6px}
+.cam .frame:before{left:-3px;top:-3px;border-right:0;border-bottom:0} .cam .frame:after{right:-3px;bottom:-3px;border-left:0;border-top:0}
+.cam .scan{position:absolute;left:18px;right:18px;top:20%;height:3px;background:var(--teal-bright);box-shadow:0 0 16px var(--teal-bright);animation:scan 2.2s ease-in-out infinite alternate}
+@keyframes scan{to{top:78%}}
+.chipset{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chipset span{font-size:12px;font-weight:700;background:#fff;border:1.5px solid var(--line2);border-radius:999px;padding:5px 10px}
+.chipset span.ok{border-color:#9FE3D4;background:var(--mint);color:#0B5A54}
+.bar{height:6px;border-radius:999px;background:#EEF1F6;overflow:hidden;margin-top:12px} .bar i{display:block;height:100%;border-radius:999px;background:var(--twilight)}
+.step{display:flex;gap:12px;margin:0 20px 14px}
+.step .n{width:28px;height:28px;border-radius:50%;background:var(--twilight);color:#fff;font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;margin-top:1px;box-shadow:0 6px 14px rgba(91,61,245,.3)}
+.msg{background:#F2F0EA;border-radius:14px;padding:11px 13px;font-size:13px;line-height:1.5;color:var(--ink2);margin-top:8px}
+.tl{position:relative;padding-left:26px}
+.tl:before{content:"";position:absolute;left:7px;top:10px;bottom:16px;width:2px;background:var(--line2)}
+.tl .ev{position:relative;padding:2px 0 14px;display:flex;gap:10px;align-items:flex-start}
+.tl .ev:before{content:"";position:absolute;left:-24px;top:7px;width:12px;height:12px;border-radius:50%;background:#C7CDD9;border:2px solid #fff;box-shadow:0 0 0 1.5px #C7CDD9}
+.tl .ev.done:before{background:#15803D;box-shadow:0 0 0 1.5px #15803D} .tl .ev.now:before{background:var(--grape);box-shadow:0 0 0 4px var(--grape-soft)} .tl .ev.due:before{background:#F59E0B;box-shadow:0 0 0 1.5px #F59E0B}
+.tl .ev:last-child{padding-bottom:0}
+.tl b{display:block;font-size:14px} .tl small{color:var(--ink2);font-size:12.5px;display:block}
+.tl .w{margin-left:auto;font-size:12px;font-weight:700;color:var(--ink3);flex:none}
+.tl .face{width:34px;height:34px}
+.srow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-top:1px solid var(--line);font-size:14.5px;font-weight:700}
+.srow:first-child{border-top:0;padding-top:0} .srow:last-child{padding-bottom:0}
+.srow small{display:block;font-weight:600;color:var(--ink2);font-size:12.5px;margin-top:1px}
+.docs{display:flex;gap:8px;margin:12px 16px 0}
+.docs div{flex:1;background:var(--sky-soft);border-radius:14px;padding:12px;font-size:12.5px;font-weight:700;display:flex;flex-direction:column;gap:8px}
+.docs .ic{color:#1D4ED8} .docs .add{background:transparent;border:1.5px dashed var(--line2);color:var(--ink3)} .docs .add .ic{color:var(--ink3)}
+/* emergency */
+.emg{background:linear-gradient(180deg,#E8463F,#B91C1C);color:#fff}
+.emg .card{color:var(--ink)}
+/* splash */
+.splash{background:radial-gradient(70% 50% at 50% 35%,#FFF7E8,var(--paper) 70%)}
+.splash canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block}
+.splash .word{position:absolute;left:0;right:0;top:56%;text-align:center;z-index:2;font-size:38px;font-weight:800;letter-spacing:-.02em}
+.splash .word span{display:inline-block;opacity:0;transform:translateY(14px) scale(.9)}
+.splash .word span.in{animation:letter .45s cubic-bezier(.2,1.3,.3,1) forwards}
+@keyframes letter{to{opacity:1;transform:none}}
+.splash .tag{position:absolute;left:0;right:0;top:63%;text-align:center;font-size:15px;font-weight:700;color:var(--ink2);opacity:0;transition:opacity .6s .2s;z-index:2}
+.splash .tag.in{opacity:1}
+.splash .tap{position:absolute;left:0;right:0;bottom:48px;text-align:center;font-size:12px;font-weight:700;color:var(--ink3);z-index:2}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.hot{opacity:1}.splash .word span{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+ <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+ <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+ <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></symbol>
+ <symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+ <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+ <symbol id="i-left" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+ <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+ <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></symbol>
+ <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+ <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></symbol>
+ <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+ <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></symbol>
+ <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.2L4 21l1.8-5.4A8 8 0 1 1 21 12z"/></symbol>
+ <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.6a2 2 0 0 1-.5 2.1L8 9.7a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.8.3 1.7.6 2.6.7a2 2 0 0 1 1.7 2z"/></symbol>
+ <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+ <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></symbol>
+ <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
+ <symbol id="i-share" viewBox="0 0 24 24"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="m16 6-4-4-4 4M12 2v13"/></symbol>
+ <symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+ <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
+ <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+ <symbol id="g-fridge" viewBox="0 0 40 40"><rect x="10" y="4" width="20" height="32" rx="4" fill="#fff" stroke="#1F2A44" stroke-width="2.2"/><path d="M10 16h20" stroke="#1F2A44" stroke-width="2.2"/><path d="M14 8.5v4M14 20v6" stroke="#14B8A6" stroke-width="2.6" stroke-linecap="round"/></symbol>
+ <symbol id="g-wm" viewBox="0 0 40 40"><rect x="7" y="6" width="26" height="28" rx="5" fill="#fff" stroke="#1F2A44" stroke-width="2.2"/><circle cx="20" cy="22" r="7" fill="#CCFBF1" stroke="#1F2A44" stroke-width="2.2"/><circle cx="12.5" cy="11" r="1.7" fill="#1F2A44"/><circle cx="17.5" cy="11" r="1.7" fill="#1F2A44"/></symbol>
+ <symbol id="g-ac" viewBox="0 0 40 40"><rect x="4" y="10" width="32" height="16" rx="4" fill="#fff" stroke="#1F2A44" stroke-width="2.2"/><path d="M9 21h22" stroke="#1F2A44" stroke-width="2.2" stroke-linecap="round"/><path d="M14 30v4M20 30v5M26 30v4" stroke="#60A5FA" stroke-width="2.6" stroke-linecap="round"/></symbol>
+ <symbol id="g-tv" viewBox="0 0 40 40"><rect x="4" y="8" width="32" height="20" rx="3" fill="#fff" stroke="#1F2A44" stroke-width="2.2"/><path d="M14 34h12M20 28v6" stroke="#1F2A44" stroke-width="2.2" stroke-linecap="round"/><path d="M10 14h8" stroke="#7C5CFF" stroke-width="2.6" stroke-linecap="round"/></symbol>
+ <symbol id="g-ro" viewBox="0 0 40 40"><rect x="11" y="5" width="18" height="30" rx="5" fill="#fff" stroke="#1F2A44" stroke-width="2.2"/><path d="M20 14c3 4 4 6 4 8a4 4 0 0 1-8 0c0-2 1-4 4-8z" fill="#60A5FA"/></symbol>
+ <symbol id="g-geyser" viewBox="0 0 40 40"><rect x="9" y="4" width="22" height="26" rx="6" fill="#fff" stroke="#1F2A44" stroke-width="2.2"/><circle cx="20" cy="17" r="4" fill="#FF8E53"/><path d="M14 30v5M26 30v5" stroke="#1F2A44" stroke-width="2.2" stroke-linecap="round"/></symbol>
+ <symbol id="g-lpg" viewBox="0 0 40 40"><rect x="11" y="9" width="18" height="27" rx="7" fill="#fff" stroke="#1F2A44" stroke-width="2.2"/><path d="M16 9V6h8v3" stroke="#1F2A44" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M20 30c3 0 5-2 5-5 0-2-1.5-3.5-2.5-5-.5 1.5-1.5 2-2 2 0-2-.5-4-2-5-1 2-3.5 4-3.5 8 0 3 2 5 5 5z" fill="#FF8E53"/></symbol>
+ <symbol id="g-health" viewBox="0 0 40 40"><circle cx="20" cy="20" r="15" fill="#fff" stroke="#1F2A44" stroke-width="2.2"/><path d="M20 12v16M12 20h16" stroke="#FF6B6B" stroke-width="4.5" stroke-linecap="round"/></symbol>
+ <symbol id="g-mobile" viewBox="0 0 40 40"><rect x="12" y="4" width="16" height="32" rx="4" fill="#fff" stroke="#1F2A44" stroke-width="2.2"/><circle cx="20" cy="31" r="1.6" fill="#1F2A44"/><path d="M17 8h6" stroke="#7C5CFF" stroke-width="2.2" stroke-linecap="round"/></symbol>
+ <symbol id="g-inverter" viewBox="0 0 40 40"><rect x="6" y="10" width="28" height="20" rx="4" fill="#fff" stroke="#1F2A44" stroke-width="2.2"/><path d="M11 20h5l2-4 3 8 2-4h6" stroke="#14B8A6" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+ <symbol id="g-microwave" viewBox="0 0 40 40"><rect x="4" y="9" width="32" height="22" rx="4" fill="#fff" stroke="#1F2A44" stroke-width="2.2"/><rect x="8" y="13" width="17" height="14" rx="2" fill="#FFF3C4" stroke="#1F2A44" stroke-width="2"/><circle cx="30" cy="17" r="1.7" fill="#1F2A44"/><circle cx="30" cy="23" r="1.7" fill="#1F2A44"/></symbol>
+ <symbol id="g-bed" viewBox="0 0 40 40"><path d="M6 30V14a3 3 0 0 1 3-3h22a3 3 0 0 1 3 3v16" fill="#fff" stroke="#1F2A44" stroke-width="2.2"/><rect x="6" y="20" width="28" height="8" rx="2" fill="#EDE9FE" stroke="#1F2A44" stroke-width="2.2"/><path d="M6 28v5M34 28v5" stroke="#1F2A44" stroke-width="2.2" stroke-linecap="round"/><rect x="10" y="14" width="9" height="5" rx="2" fill="#7C5CFF"/></symbol>
+ <symbol id="g-mixer" viewBox="0 0 40 40"><rect x="8" y="22" width="24" height="12" rx="4" fill="#fff" stroke="#1F2A44" stroke-width="2.2"/><path d="M13 22V9a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13" fill="#CCFBF1" stroke="#1F2A44" stroke-width="2.2"/><path d="M25 12h4" stroke="#1F2A44" stroke-width="2.2" stroke-linecap="round"/><circle cx="26" cy="28" r="1.8" fill="#FF6B6B"/></symbol>
+ <symbol id="g-box" viewBox="0 0 40 40"><path d="M6 14 20 7l14 7v14l-14 7-14-7z" fill="#fff" stroke="#1F2A44" stroke-width="2.2" stroke-linejoin="round"/><path d="M6 14l14 7 14-7M20 21v14" stroke="#1F2A44" stroke-width="2.2" stroke-linejoin="round" fill="none"/><path d="M13 10.5l14 7" stroke="#FFC53D" stroke-width="2.6" stroke-linecap="round"/></symbol>
+ <symbol id="g-tools" viewBox="0 0 40 40"><path d="M27 6a7 7 0 0 0-7 9L8 27a3 3 0 0 0 4 4l12-12a7 7 0 0 0 9-7l-4 4-4-1-1-4z" fill="#fff" stroke="#1F2A44" stroke-width="2.2" stroke-linejoin="round"/><path d="M10 29l1.5-1.5" stroke="#14B8A6" stroke-width="2.6" stroke-linecap="round"/></symbol>
+ <symbol id="g-chimney" viewBox="0 0 40 40"><path d="M14 6h12v12l8 8H6l8-8z" fill="#fff" stroke="#1F2A44" stroke-width="2.2" stroke-linejoin="round"/><path d="M12 32h16" stroke="#FF8E53" stroke-width="2.6" stroke-linecap="round"/></symbol>
+</svg>
+
+<div class="stage">
+<aside class="side">
+  <div id="lk" style="width:150px;margin-bottom:10px"></div>
+  <h1>v5.1 — people · things · home</h1>
+  <p>Three pillars, equal weight: the people you insure, the things you own, the home itself. Emergency card is always one tap away. v5.1 = feature audit applied: no onboarding quiz, categories for anything you own, honest copy, no fake tracking.</p>
+  <div class="tog"><button id="bPhone" class="on">Phone</button><button id="bGrid">All screens</button></div>
+  <div class="grp">Start</div>
+  <a data-go="splash"><i>00</i>Splash (logo animation)</a><a data-go="welcome"><i>01</i>Welcome</a><a data-go="otp"><i>02</i>Phone + OTP</a><a data-go="first"><i>03</i>First open (empty home)</a>
+  <div class="grp">Tabs</div>
+  <a data-go="home"><i>04</i>Home (overview + 3D)</a><a data-go="things"><i>05</i>Things</a><a data-go="insurance"><i>06</i>Insurance</a><a data-go="family"><i>07</i>Family</a>
+  <div class="grp">People</div>
+  <a data-go="health"><i>08</i>Health policy</a><a data-go="emergency"><i>09</i>Emergency card</a>
+  <div class="grp">Things</div>
+  <a data-go="product"><i>10</i>Product</a><a data-go="wrong"><i>11</i>Something's wrong?</a><a data-go="repair"><i>12</i>Complaint note</a>
+  <div class="grp">Add</div>
+  <a data-go="add"><i>13</i>What to add</a><a data-go="cat"><i>14</i>Pick what it is</a><a data-go="brand"><i>15</i>Brand &amp; model</a><a data-go="scan"><i>16</i>Scan</a><a data-go="confirm"><i>17</i>Confirm</a>
+  <div class="grp">Also</div>
+  <a data-go="reminders"><i>18</i>Reminders (from the bell)</a>
+  <p style="margin-top:14px;font-size:11px">Needs internet (Three.js, Manrope, Pexels). Photos are free placeholders; 3D models are primitives standing in for real GLB assets.</p>
+</aside>
+
+<div class="canvas" id="canvas">
+<div class="phone" id="ph1"><div class="app" id="app">
+
+<!-- 00 SPLASH -->
+<section class="screen splash on" id="s-splash" data-cap="00 · Splash — the lifebuoy assembles, then spins once">
+  <div class="word" id="word"></div>
+  <div class="tag" id="stag">Keep it covered.</div>
+  <div class="tap">tap to skip</div>
+</section>
+
+<!-- 01 WELCOME -->
+<section class="screen" id="s-welcome" data-cap="01 · Welcome">
+  <div class="sb w"><span>9:41</span><span>●●● <i class="bat"></i></span></div>
+  <div class="content" style="display:flex;flex-direction:column">
+    <div class="phero" style="height:470px"><img src="https://images.pexels.com/photos/14798018/pexels-photo-14798018.jpeg?auto=compress&cs=tinysrgb&w=1000" alt=""><div class="veil"></div>
+      <div class="txt"><div class="k">Alongkeep</div><div class="nm" style="font-size:32px">Everything at home, looked after.</div><div class="md">Warranties, insurance, AMC, LPG — one place, and a nudge before anything expires.</div></div></div>
+    <div style="padding:18px 20px 0;flex:1;display:flex;flex-direction:column;justify-content:flex-end">
+      <div class="btn" data-go="otp"><span class="lbl">Continue with phone number</span><span class="chipi"><svg class="ic"><use href="#i-right"/></svg></span></div>
+      <div class="note" style="text-align:center;margin-top:10px">No password. No email. Takes 20 seconds.</div>
+      <div class="link">Just want to check a warranty? Look it up</div>
+    </div>
+  </div>
+  <div class="hi"></div>
+</section>
+
+<!-- 02 OTP -->
+<section class="screen" id="s-otp" data-cap="02 · Phone + OTP">
+  <div class="sb"><span>9:41</span><span>●●● <i class="bat"></i></span></div>
+  <div class="content">
+    <div class="top"><div class="ib" data-back><svg class="ic"><use href="#i-left"/></svg></div></div>
+    <div class="pad">
+      <div class="h1">What's your mobile number?</div>
+      <p class="sub">We'll send a 6-digit code. Reminders go to this number too.</p>
+      <div class="field"><div class="v f" style="font-size:19px"><span style="color:var(--ink3)">+91</span>98765 43210</div></div>
+      <div class="btn" data-go="first"><span class="lbl">Send code</span><span class="chipi"><svg class="ic"><use href="#i-right"/></svg></span></div>
+    </div>
+    <div class="card"><div class="nm">Enter the code</div><div class="ev">Sent to +91 98765 43210 · <b style="color:var(--grape-deep)">Change</b></div>
+      <div class="otp"><span>4</span><span>8</span><span>2</span><span class="f">|</span><span></span><span></span></div>
+      <div class="note">Auto-fills from SMS on Android. Resend in 0:24</div></div>
+    <div class="card row"><span class="toggle on"></span><div class="grow"><div class="nm" style="font-size:14px">Also send reminders on WhatsApp</div><div class="note">Coming soon. We'll never message you without asking.</div></div></div>
+  </div>
+  <div class="hi"></div>
+</section>
+
+<!-- 03 FIRST OPEN -->
+<section class="screen" id="s-first" data-cap="03 · First open — no quiz; add what you like, when you like">
+  <div class="sb"><span>9:41</span><span>●●● <i class="bat"></i></span></div>
+  <div class="content">
+    <div class="hdr2"><div class="grow"><div class="eve">Welcome, Faizan</div><div class="who">Your home, in one place.</div></div><span class="pill" data-go="home" style="cursor:pointer">Skip for now</span></div>
+    <div class="overview">
+      <div class="ov" data-go="add"><div class="k">People</div><b>＋</b><small>add a policy</small></div>
+      <div class="ov" data-go="cat"><div class="k">Things</div><b>＋</b><small>add anything you own</small></div>
+      <div class="ov" data-go="add"><div class="k">Home</div><b>＋</b><small>LPG &amp; services</small></div>
+    </div>
+    <div class="pad" style="margin-top:12px"><div class="btn sun" data-go="scan"><span class="lbl"><svg class="ic s"><use href="#i-camera"/></svg>Scan any bill or policy</span><span class="chipi"><svg class="ic"><use href="#i-right"/></svg></span></div>
+      <div class="note" style="text-align:center;margin-top:10px">Bill, warranty card, policy, AMC paper — we work out what it is and do the typing.</div></div>
+    <div class="sec">Or pick a category</div>
+    <div class="pick">
+      <div data-go="cat"><svg><use href="#g-fridge"/></svg><span>Kitchen appliances</span></div>
+      <div data-go="cat"><svg><use href="#g-wm"/></svg><span>Home appliances</span></div>
+      <div data-go="cat"><svg><use href="#g-mobile"/></svg><span>Phones &amp; gadgets</span></div>
+      <div data-go="cat"><svg><use href="#g-bed"/></svg><span>Furniture &amp; mattress</span></div>
+      <div data-go="cat"><svg><use href="#g-tools"/></svg><span>Fittings &amp; tools</span></div>
+      <div data-go="add"><svg><use href="#g-health"/></svg><span>Insurance policy</span></div>
+      <div data-go="add"><svg><use href="#g-lpg"/></svg><span>LPG &amp; home services</span></div>
+      <div data-go="cat"><svg><use href="#g-box"/></svg><span>Something else</span></div>
+    </div>
+    <div class="note" style="text-align:center;margin:12px 20px 6px">Nothing is required. Add one thing today, the rest whenever.</div>
+  </div>
+  <div class="hi"></div>
+</section>
+
+<!-- 04 HOME -->
+<section class="screen" id="s-home" data-cap="04 · Home — people, things and the home at a glance">
+  <div class="sb"><span>9:41</span><span>●●● <i class="bat"></i></span></div>
+  <div class="content">
+    <div class="hdr2"><div class="grow"><div class="eve">Good morning, Faizan</div><div class="who">Your home is looked after.</div></div><div class="emgpill" data-go="emergency"><svg class="ic"><use href="#i-alert"/></svg>Emergency</div><div class="ib" data-go="reminders"><svg class="ic"><use href="#i-bell"/></svg></div></div>
+    <div class="overview">
+      <div class="ov" data-go="insurance"><div class="k">People</div><div class="facesm"><img src="https://images.pexels.com/photos/16659308/pexels-photo-16659308.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&fit=crop" alt=""><img src="https://images.pexels.com/photos/18786324/pexels-photo-18786324.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&fit=crop" alt=""><img src="https://images.pexels.com/photos/4307713/pexels-photo-4307713.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&fit=crop" alt=""></div><b>₹10 L</b><small>health cover, all three</small></div>
+      <div class="ov" data-go="things"><div class="k">Things</div><b>9</b><small>2 need you soon · 1 expired</small></div>
+      <div class="ov"><div class="k">Home</div><b>LPG</b><small>refill in 4 days</small></div>
+    </div>
+    <div class="sec" style="padding-top:20px">Your home <span class="hintx">drag to look around · tap a marker</span></div>
+    <div class="hero3d" id="hero3d"><div class="fade"></div></div>
+    <div class="sec">Needs you soon <span>3</span></div>
+    <div class="rail" id="rail">
+      <div class="wc" data-go="product"><div class="ph"><img src="https://images.pexels.com/photos/2343467/pexels-photo-2343467.jpeg?auto=compress&cs=tinysrgb&w=700" alt=""><div class="tag"><i style="background:#F59E0B"></i>Warranty ends 14 Nov</div></div>
+        <div class="row"><div class="grow"><div class="nm">Samsung fridge</div><div class="ev">Anything not right? Get it fixed under warranty before it ends.</div></div><div class="ring" data-ring="23" data-max="365" data-color="#F59E0B"><b>23</b><small>days</small></div></div>
+        <div class="act sun">Get it checked before 14 Nov <span class="chipi"><svg class="ic"><use href="#i-right"/></svg></span></div></div>
+      <div class="wc" data-go="product"><div class="ph"><img src="https://images.pexels.com/photos/5463580/pexels-photo-5463580.jpeg?auto=compress&cs=tinysrgb&w=700" alt=""><div class="tag"><i style="background:#F59E0B"></i>Service due 3 Nov</div></div>
+        <div class="row"><div class="grow"><div class="nm">Voltas AC</div><div class="ev">Your AMC covers this visit. Call Voltas to fix a date; we note it and remind you.</div></div><div class="ring" data-ring="12" data-max="90" data-color="#F59E0B"><b>12</b><small>days</small></div></div>
+        <div class="act">Book the visit <span class="chipi"><svg class="ic"><use href="#i-right"/></svg></span></div></div>
+      <div class="wc"><div class="ph"><img src="https://images.pexels.com/photos/14769672/pexels-photo-14769672.jpeg?auto=compress&cs=tinysrgb&w=700" alt=""><div class="tag"><i style="background:#60A5FA"></i>Refill due in 4 days</div></div>
+        <div class="row"><div class="grow"><div class="nm">Indane LPG</div><div class="ev">Based on the refills you booked here. One tap books the next on WhatsApp.</div></div><div class="ring" data-ring="4" data-max="24" data-color="#60A5FA"><b>4</b><small>days</small></div></div>
+        <div class="act ghost">Book refill on WhatsApp <span class="chipi"><svg class="ic"><use href="#i-chat"/></svg></span></div></div>
+    </div>
+    <div class="sec">Your family's cover</div>
+    <div class="ticket" data-go="health"><div class="main"><div class="k">Health insurance · Star Health</div><div class="nm">Family floater, ₹10 lakh</div><div class="m">Faizan, Ammi, Bhai · renews 12 Mar 2027</div></div><div class="stub coral"><b>141</b><small>days</small></div></div>
+    <div class="helper" data-go="emergency" style="margin-top:10px"><div class="face" style="display:flex;align-items:center;justify-content:center;background:var(--coral-soft);color:#B42318;--ringc:#FF6B6B"><svg class="ic"><use href="#i-alert"/></svg></div><div class="grow"><div class="t">Emergency card</div><div class="m">Policy number, TPA line, blood groups — one tap at the hospital desk. Works offline.</div></div><span class="go"><svg class="ic"><use href="#i-right"/></svg></span></div>
+    <div class="sec">Everything else is covered</div>
+    <div class="rowi" data-go="things"><div class="th"><svg><use href="#g-wm"/></svg></div><div class="grow"><div class="nm">LG washing machine</div><div class="ev">Covered till March 2028</div></div><span class="st">Covered</span></div>
+    <div class="rowi" data-go="things"><div class="th"><svg><use href="#g-ro"/></svg></div><div class="grow"><div class="nm">Kent RO purifier</div><div class="ev">Filter change in June 2027</div></div><span class="st">Covered</span></div>
+    <div class="rowi" data-go="insurance"><div class="th" style="background:var(--grape-soft)"><svg><use href="#g-tv"/></svg></div><div class="grow"><div class="nm">Appliance protection, HDFC ERGO</div><div class="ev">LG washing machine, Sony TV · renews 12 Mar</div></div><span class="st">Covered</span></div>
+    <div style="height:110px"></div>
+  </div>
+  <div class="fab" data-go="add"><svg class="ic"><use href="#i-plus"/></svg></div>
+  <div class="tabbar" data-tabs></div>
+  <div class="hi"></div>
+</section>
+
+<!-- 05 PRODUCT -->
+<section class="screen" id="s-product" data-cap="10 · Product — photo, warranty ticket, who to call">
+  <div class="sb w"><span>9:41</span><span>●●● <i class="bat"></i></span></div>
+  <div class="content">
+    <div class="phero" style="height:316px"><img src="https://images.pexels.com/photos/2343467/pexels-photo-2343467.jpeg?auto=compress&cs=tinysrgb&w=1000" alt=""><div class="veil"></div>
+      <div class="bar"><div class="ib dark" data-back><svg class="ic"><use href="#i-left"/></svg></div><div class="ib dark"><svg class="ic"><use href="#i-more"/></svg></div></div>
+      <div class="txt" style="bottom:40px"><div class="k">Kitchen · since November 2025</div><div class="nm">Samsung fridge</div><div class="md">RT42DB5204S9 · from your bill</div></div></div>
+    <div class="dcard lift">
+      <div class="lab"><i></i>Standard warranty, one year</div>
+      <div class="track" data-track="94"><i></i><b></b></div>
+      <div class="ends"><span>Bought<b>15 Nov 2025</b></span><span style="text-align:center">Today<b>22 Oct 2026</b></span><span style="text-align:right">Ends<b>14 Nov 2026</b></span></div>
+      <div class="perf"></div>
+      <div class="stub"><div class="num"><b data-count="23">0</b><span>days left</span></div><div class="fc"><svg class="ic s"><use href="#i-spark"/></svg><span>Anything not right? Fix it under warranty before 14 Nov. Reminder on 7 Nov.</span></div></div>
+    </div>
+    <div class="helper" data-go="wrong"><div class="face c2" style="display:flex;align-items:center;justify-content:center;background:var(--mint);color:#0B5A54;--ringc:#14B8A6"><svg class="ic"><use href="#i-phone"/></svg></div><div class="grow"><div class="t">Samsung Care · 1800 40 7267864</div><div class="m">Official service line, WhatsApp too. From our brand directory.</div></div><span class="go"><svg class="ic"><use href="#i-chat"/></svg></span></div>
+    <div class="card">
+      <div class="cov"><span class="dot" style="background:#15803D"></span><div class="grow"><div class="t">Compressor warranty</div><div class="m">Part only, till 14 Nov 2035</div></div><span class="pill g">Active</span></div>
+      <div class="cov"><span class="dot" style="background:#C7CDD9"></span><div class="grow"><div class="t">Extended warranty</div><div class="m">None yet. Bought one with the fridge? Add it.</div></div><span class="pill b">Add</span></div>
+      <div class="cov"><span class="dot" style="background:#C7CDD9"></span><div class="grow"><div class="t">Insurance</div><div class="m">Not added</div></div><span class="pill b">Add</span></div>
+    </div>
+    <div class="sec" style="padding-top:16px">Papers</div>
+    <div class="docs"><div><svg class="ic s"><use href="#i-file"/></svg>Bill.pdf</div><div><svg class="ic s"><use href="#i-file"/></svg>Warranty card</div><div class="add"><svg class="ic s"><use href="#i-plus"/></svg>Add</div></div>
+    <div style="height:24px"></div>
+  </div>
+  <div class="cta"><div class="btn" data-go="wrong"><span class="lbl"><svg class="ic s"><use href="#i-wrench"/></svg>Something's wrong?</span><span class="chipi"><svg class="ic"><use href="#i-right"/></svg></span></div></div>
+  <div class="hi"></div>
+</section>
+
+<!-- THINGS TAB -->
+<section class="screen" id="s-things" data-cap="05 · Things — everything you own, its cover, its next date">
+  <div class="sb"><span>9:41</span><span>●●● <i class="bat"></i></span></div>
+  <div class="content">
+    <div class="pad" style="padding-top:62px;display:flex;align-items:center"><div class="h1" style="flex:1;margin:0">Things</div><span class="pill b" data-go="add">＋ Add</span></div>
+    <div class="pad"><p class="sub" style="margin:4px 0 0">9 things · 2 need you soon · 1 expired</p></div>
+    <div class="sec">Needs you soon</div>
+    <div class="ticket" data-go="product"><div class="main"><div class="k">Kitchen · Samsung</div><div class="nm">Samsung fridge</div><div class="m">Standard warranty ends 14 Nov 2026 · get anything fixed before then</div></div><div class="stub sun"><b>23</b><small>days</small></div></div>
+    <div class="ticket" data-go="product"><div class="main"><div class="k">Living room · Voltas</div><div class="nm">Voltas AC 1.5T</div><div class="m">AMC service due 3 Nov · 2 of 4 visits used</div></div><div class="stub sun"><b>12</b><small>days</small></div></div>
+    <div class="sec">Covered</div>
+    <div class="rowi" data-go="product"><div class="th"><svg><use href="#g-wm"/></svg></div><div class="grow"><div class="nm">LG washing machine</div><div class="ev">Warranty till Mar 2028 · 1 free service unused</div></div><span class="st">Covered</span></div>
+    <div class="rowi" data-go="product"><div class="th"><svg><use href="#g-ro"/></svg></div><div class="grow"><div class="nm">Kent RO purifier</div><div class="ev">Filter change in June 2027</div></div><span class="st">Covered</span></div>
+    <div class="rowi" data-go="product"><div class="th" style="background:var(--sun-soft)"><svg><use href="#g-lpg"/></svg></div><div class="grow"><div class="nm">Indane LPG connection</div><div class="ev">Refill in ~4 days · safety check Mar 2027</div></div><span class="st">On track</span></div>
+    <div class="rowi" data-go="product"><div class="th" style="background:var(--coral-soft)"><svg><use href="#g-tv"/></svg></div><div class="grow"><div class="nm">Sony Bravia 55"</div><div class="ev">Warranty ended Jun 2026 · covered by HDFC ERGO plan</div></div><span class="st">Covered</span></div>
+    <div class="rowi" data-go="product"><div class="th"><svg><use href="#g-geyser"/></svg></div><div class="grow"><div class="nm">Bajaj geyser</div><div class="ev">Warranty till Dec 2027</div></div><span class="st">Covered</span></div>
+    <div class="rowi" data-go="product"><div class="th" style="background:var(--grape-soft)"><svg><use href="#g-bed"/></svg></div><div class="grow"><div class="nm">Sleepwell mattress</div><div class="ev">10-year warranty till Feb 2034</div></div><span class="st">Covered</span></div>
+    <div class="sec">Expired</div>
+    <div class="rowi" data-go="product"><div class="th" style="background:#EEF1F6"><svg><use href="#g-mixer"/></svg></div><div class="grow"><div class="nm">Prestige mixer grinder</div><div class="ev">Warranty ended Aug 2026 · repairs are paid now</div></div><span class="pill">Expired</span></div>
+    <div style="height:100px"></div>
+  </div>
+  <div class="fab" data-go="add"><svg class="ic"><use href="#i-plus"/></svg></div>
+  <div class="tabbar" data-tabs></div>
+  <div class="hi"></div>
+</section>
+
+<!-- 06 ADD -->
+<section class="screen" id="s-add" data-cap="13 · What to add — three doors, or just scan">
+  <div class="sb"><span>9:41</span><span>●●● <i class="bat"></i></span></div>
+  <div class="content">
+    <div class="top"><div class="ib" data-back><svg class="ic"><use href="#i-x"/></svg></div></div>
+    <div class="pad"><div class="h1">What do you want to add?</div><p class="sub">Anything at home that has a date or a paper.</p></div>
+    <div class="catcard" data-go="cat"><img src="https://images.pexels.com/photos/2343467/pexels-photo-2343467.jpeg?auto=compress&cs=tinysrgb&w=800" alt=""><div class="v"></div><div class="t"><b>A thing you own</b><small>Appliance, gadget, furniture, mattress, fittings — anything with a bill</small></div><span class="go"><svg class="ic s"><use href="#i-right"/></svg></span></div>
+    <div class="catcard" data-go="health"><img src="https://images.pexels.com/photos/8055075/pexels-photo-8055075.jpeg?auto=compress&cs=tinysrgb&w=800" alt=""><div class="v"></div><div class="t"><b>Insurance policy</b><small>Health, life, motor, home, gadget</small></div><span class="go"><svg class="ic s"><use href="#i-right"/></svg></span></div>
+    <div class="catcard"><img src="https://images.pexels.com/photos/14769672/pexels-photo-14769672.jpeg?auto=compress&cs=tinysrgb&w=800" alt=""><div class="v"></div><div class="t"><b>Home service</b><small>LPG, tank cleaning, pest control…</small></div><span class="go"><svg class="ic s"><use href="#i-right"/></svg></span></div>
+    <div class="pad" style="margin-top:6px"><div class="btn tw" data-go="scan"><span class="lbl"><svg class="ic s"><use href="#i-camera"/></svg>Just scan the paper you have</span><span class="chipi"><svg class="ic"><use href="#i-right"/></svg></span></div>
+      <div class="note" style="text-align:center;margin-top:10px">Bill, warranty card, policy — we'll work out what it is. Or forward an order email to <b>bills@alongkeep.app</b>.</div></div>
+  </div>
+  <div class="hi"></div>
+</section>
+
+
+<!-- 14 PICK WHAT IT IS -->
+<section class="screen" id="s-cat" data-cap="14 · Add a thing — tap the closest, or type it">
+  <div class="sb"><span>9:41</span><span>●●● <i class="bat"></i></span></div>
+  <div class="content">
+    <div class="top"><div class="ib" data-back><svg class="ic"><use href="#i-left"/></svg></div><div class="t">What is it?</div><div style="width:40px"></div></div>
+    <div class="pad"><p class="sub" style="margin:0">Tap the closest one. Furniture, fittings, tools — anything with a bill counts.</p></div>
+    <div class="sec">Kitchen</div>
+    <div class="chips2"><span data-go="brand">Fridge</span><span data-go="brand">Microwave</span><span data-go="brand">Mixer grinder</span><span data-go="brand">Chimney</span><span data-go="brand">RO purifier</span><span data-go="brand">Dishwasher</span><span data-go="brand">Induction</span></div>
+    <div class="sec">Home</div>
+    <div class="chips2"><span data-go="brand">Washing machine</span><span data-go="brand">AC</span><span data-go="brand">Geyser</span><span data-go="brand">TV</span><span data-go="brand">Inverter</span><span data-go="brand">Fan</span><span data-go="brand">Vacuum cleaner</span></div>
+    <div class="sec">Phones &amp; gadgets</div>
+    <div class="chips2"><span data-go="brand">Mobile</span><span data-go="brand">Laptop</span><span data-go="brand">Earbuds</span><span data-go="brand">Smartwatch</span><span data-go="brand">Tablet</span><span data-go="brand">Camera</span></div>
+    <div class="sec">Furniture &amp; mattress</div>
+    <div class="chips2"><span data-go="brand">Mattress</span><span data-go="brand">Sofa</span><span data-go="brand">Bed</span><span data-go="brand">Wardrobe</span><span data-go="brand">Dining table</span><span data-go="brand">Office chair</span></div>
+    <div class="sec">Fittings &amp; tools</div>
+    <div class="chips2"><span data-go="brand">Modular kitchen</span><span data-go="brand">Taps &amp; sanitary</span><span data-go="brand">Door lock</span><span data-go="brand">Solar panel</span><span data-go="brand">Drill</span></div>
+    <div class="sec">Something else</div>
+    <div class="pad"><div class="field"><div class="v" style="color:var(--ink3);font-weight:600">Type its name, e.g. sewing machine</div></div>
+      <div class="note" style="text-align:center;margin:4px 0 24px">Not sure? <b style="color:var(--grape-deep);cursor:pointer" data-go="scan">Scan the bill instead</b> — we work it out.</div></div>
+  </div>
+  <div class="hi"></div>
+</section>
+
+<!-- 15 BRAND & MODEL -->
+<section class="screen" id="s-brand" data-cap="15 · Brand, model, when — approx is fine">
+  <div class="sb"><span>9:41</span><span>●●● <i class="bat"></i></span></div>
+  <div class="content">
+    <div class="top"><div class="ib" data-back><svg class="ic"><use href="#i-left"/></svg></div><div class="t">Fridge</div><div style="width:40px"></div></div>
+    <div class="pad">
+      <div class="field"><label>Brand</label><div class="chips2" style="padding:0"><span class="on">Samsung</span><span>LG</span><span>Whirlpool</span><span>Godrej</span><span>Haier</span><span>Other</span></div></div>
+      <div class="field" style="margin-top:14px"><label>Model number · optional</label><div class="v f">RT42DB5204S9</div><div class="note" style="margin-top:5px">On the sticker inside the door. Skip it — we use the brand's standard warranty.</div></div>
+      <div class="field"><label>Bought around</label><div class="v">November 2025</div></div>
+      <div class="field"><label>Bought from · optional</label><div class="v" style="color:var(--ink3);font-weight:600">Croma, Amazon, local shop…</div></div>
+    </div>
+    <div class="card" style="background:var(--mint);border-color:#9FE3D4;margin-top:4px"><div class="nm" style="font-size:14.5px">Samsung fridge · standard warranty</div><div class="ev">1 year from purchase, compressor 10 years — from our brand directory. Exact dates once you add the bill.</div></div>
+    <div style="height:12px"></div>
+  </div>
+  <div class="cta"><div class="btn" data-go="product"><span class="lbl">Add to Things</span><span class="chipi"><svg class="ic"><use href="#i-right"/></svg></span></div><div class="note" style="text-align:center;margin-top:8px">Scan the bill any time to make this exact.</div></div>
+  <div class="hi"></div>
+</section>
+
+<!-- 07 SCAN -->
+<section class="screen" id="s-scan" data-cap="16 · Scan — the app reads the bill">
+  <div class="sb"><span>9:41</span><span>●●● <i class="bat"></i></span></div>
+  <div class="content">
+    <div class="top"><div class="ib" data-back><svg class="ic"><use href="#i-left"/></svg></div><div class="t">Scan the bill</div><div style="width:40px"></div></div>
+    <div class="cam"><div class="doc"><i class="w"></i><i class="m"></i><i class="m"></i><i class="s"></i><br><i class="m"></i><i class="w"></i><i class="m"></i><i class="s"></i></div><div class="frame"></div><div class="scan"></div></div>
+    <div class="card" style="margin-top:0"><div class="row"><div class="face c1" style="display:flex;align-items:center;justify-content:center;background:var(--grape-soft);color:var(--grape-deep);--ringc:#7C5CFF"><svg class="ic"><use href="#i-spark"/></svg></div><div class="grow"><div class="nm">Reading your bill…</div><div class="ev">Usually 3–5 seconds</div></div></div>
+      <div class="bar"><i style="width:70%"></i></div>
+      <div class="chipset"><span class="ok">Samsung ✓</span><span class="ok">Refrigerator ✓</span><span class="ok">15 Nov 2025 ✓</span><span>Serial no…</span><span>Store…</span></div></div>
+    <div class="pad" style="margin-top:14px"><div class="btns"><div class="btn sm ghost"><span class="lbl">Retake</span></div><div class="btn sm tw" data-go="confirm"><span class="lbl">Upload PDF instead</span><span class="chipi"><svg class="ic"><use href="#i-right"/></svg></span></div></div>
+      <div class="note" style="text-align:center;margin-top:14px">No bill? <b style="color:var(--grape-deep)">Scan the sticker on the product</b> or <b style="color:var(--grape-deep)">type it in</b>.</div></div>
+  </div>
+  <div class="hi"></div>
+</section>
+
+<!-- 08 CONFIRM -->
+<section class="screen" id="s-confirm" data-cap="17 · Confirm — everything pre-filled">
+  <div class="sb"><span>9:41</span><span>●●● <i class="bat"></i></span></div>
+  <div class="content">
+    <div class="top"><div class="ib" data-back><svg class="ic"><use href="#i-left"/></svg></div><div class="t">Check the details</div><div style="width:40px"></div></div>
+    <div class="card row" style="margin-top:0"><div class="rowi" style="padding:0"><div class="th"><img src="https://images.pexels.com/photos/2343467/pexels-photo-2343467.jpeg?auto=compress&cs=tinysrgb&w=200" alt=""></div></div><div class="grow"><div class="nm">Samsung Refrigerator</div><div class="ev">RT42DB5204S9 · Double door, 385 L</div></div><span class="pill">Edit</span></div>
+    <div class="pad" style="margin-top:14px"><div class="g2">
+      <div class="field"><label>Purchased on</label><div class="v ok">15 Nov 2025</div></div><div class="field"><label>Price</label><div class="v ok">₹38,990</div></div>
+      <div class="field"><label>Store</label><div class="v ok">Croma, Noida</div></div><div class="field"><label>Serial no.</label><div class="v warn">0A2B4XJ9… <small style="color:#B45309;font-weight:800">check</small></div></div></div></div>
+    <div class="ticket" style="margin-top:4px"><div class="main"><div class="k">Found automatically</div><div class="nm">Standard warranty, 1 year</div><div class="m">Ends 14 Nov 2026 · Samsung's standard policy for this model. Tap to edit if your card says otherwise.</div></div><div class="stub sun"><b>1</b><small>year</small></div></div>
+    <div class="ticket"><div class="main"><div class="k">Found automatically</div><div class="nm">Compressor, 10 years</div><div class="m">Ends 14 Nov 2035 · part only</div></div><div class="stub grape"><b>10</b><small>years</small></div></div>
+    <div style="height:16px"></div>
+  </div>
+  <div class="cta"><div class="btn" data-go="product"><span class="lbl">Looks good</span><span class="chipi"><svg class="ic"><use href="#i-check"/></svg></span></div></div>
+  <div class="hi"></div>
+</section>
+
+<!-- 09 WRONG -->
+<section class="screen" id="s-wrong" data-cap="11 · Something's wrong? — who to call, what to say">
+  <div class="sb"><span>9:41</span><span>●●● <i class="bat"></i></span></div>
+  <div class="content">
+    <div class="top"><div class="ib" data-back><svg class="ic"><use href="#i-left"/></svg></div><div class="t">Something's wrong?</div><div style="width:40px"></div></div>
+    <div class="card" style="margin-top:0;background:var(--mint);border-color:#9FE3D4"><div class="row"><div class="face c1" style="display:flex;align-items:center;justify-content:center;background:#fff;color:var(--teal)"><svg class="ic"><use href="#i-check"/></svg></div><div class="grow"><div class="nm">Good news — it's covered</div><div class="ev">Samsung standard warranty till 14 Nov 2026. The repair should be free.</div></div></div></div>
+    <div class="sec">Three steps</div>
+    <div class="step"><div class="n">1</div><div class="grow"><div class="nm" style="font-size:14.5px">Call Samsung Care</div><div class="ev" style="margin-top:4px">1800 40 7267864, WhatsApp too. Official line from our brand directory — no middleman.</div>
+      <div class="btns" style="margin-top:10px"><div class="btn sm"><span class="lbl"><svg class="ic s"><use href="#i-phone"/></svg>Call</span></div><div class="btn sm ghost"><span class="lbl"><svg class="ic s"><use href="#i-chat"/></svg>WhatsApp</span></div></div></div></div>
+    <div class="step"><div class="n">2</div><div class="grow"><div class="nm" style="font-size:14.5px">Share these details</div>
+      <div class="msg">Hi, I need service for my Samsung refrigerator.<br>Model: RT42DB5204S9 · Serial: 0A2B4XJ9M00412<br>Purchased: 15 Nov 2025, Croma Noida<br>Issue: <u>Not cooling properly</u></div>
+      <div class="btns" style="margin-top:8px"><div class="btn sm ghost"><span class="lbl">Copy</span></div><div class="btn sm ghost"><span class="lbl"><svg class="ic s"><use href="#i-share"/></svg>Share</span></div></div></div></div>
+    <div class="step"><div class="n">3</div><div class="grow"><div class="nm" style="font-size:14.5px">Keep ready for the technician</div><div class="ev">Bill ✓ attached · Serial no ✓ · Warranty card ✓</div></div></div>
+    <div class="pad"><div class="field"><label>Got a complaint number? Save it</label><div class="v" style="color:var(--ink3);font-weight:600">e.g. SR-4471023</div></div></div>
+    <div style="height:10px"></div>
+  </div>
+  <div class="cta"><div class="btn tw" data-go="repair"><span class="lbl">Save complaint number</span><span class="chipi"><svg class="ic"><use href="#i-right"/></svg></span></div></div>
+  <div class="hi"></div>
+</section>
+
+<!-- 12 COMPLAINT NOTE -->
+<section class="screen" id="s-repair" data-cap="12 · Complaint saved — your note; the brand tracks the repair">
+  <div class="sb w"><span>9:41</span><span>●●● <i class="bat"></i></span></div>
+  <div class="content">
+    <div class="phero" style="height:260px"><img src="https://images.pexels.com/photos/2343467/pexels-photo-2343467.jpeg?auto=compress&cs=tinysrgb&w=1000" alt=""><div class="veil"></div>
+      <div class="bar"><div class="ib dark" data-back><svg class="ic"><use href="#i-left"/></svg></div><div class="ib dark"><svg class="ic"><use href="#i-more"/></svg></div></div>
+      <div class="txt" style="bottom:44px"><div class="k">Samsung fridge · SR-4471023</div><div class="nm">Complaint saved</div><div class="md">Logged 22 Oct with Samsung Care. We keep the note; Samsung handles the repair.</div></div></div>
+    <div class="dcard lift"><div class="lab"><i style="background:#2DD4BF;box-shadow:0 0 10px #2DD4BF"></i>Cost under warranty</div>
+      <div class="stub" style="padding-top:8px"><div class="num"><b>₹0</b><span>parts &amp; labour</span></div><div class="fc" style="max-width:150px"><svg class="ic s"><use href="#i-alert"/></svg><span>If they ask for payment, see what's covered.</span></div></div></div>
+    <div class="card"><div class="nm" style="font-size:14.5px">Check status with Samsung Care</div><div class="ev">Quote SR-4471023. They tell you the visit date.</div>
+      <div class="btns" style="margin-top:10px"><div class="btn sm"><span class="lbl"><svg class="ic s"><use href="#i-phone"/></svg>Call</span></div><div class="btn sm ghost"><span class="lbl"><svg class="ic s"><use href="#i-chat"/></svg>WhatsApp</span></div></div></div>
+    <div class="card"><div class="nm" style="font-size:14.5px">What they told you</div>
+      <div class="field" style="margin-top:10px"><label>Visit date · optional</label><div class="v ok">Fri 24 Oct, 10 am – 1 pm</div><div class="note" style="margin-top:5px">You typed this. We remind you at 9 am that day.</div></div>
+      <div class="field" style="margin:0"><label>Technician's number · optional</label><div class="v" style="color:var(--ink3);font-weight:600">Save it if they share one</div></div></div>
+    <div class="pad" style="margin-top:14px"><div class="btns"><div class="btn sm ghost"><span class="lbl"><svg class="ic s"><use href="#i-camera"/></svg>Add a photo</span></div><div class="btn sm tw"><span class="lbl">Mark as fixed</span><span class="chipi"><svg class="ic"><use href="#i-check"/></svg></span></div></div>
+      <div class="note" style="text-align:center;margin:14px 0 20px">This note stays in the fridge's history — handy for resale and future claims.</div></div>
+  </div>
+  <div class="hi"></div>
+</section>
+
+<!-- INSURANCE TAB -->
+<section class="screen" id="s-insurance" data-cap="06 · Insurance — the people and things you've covered">
+  <div class="sb"><span>9:41</span><span>●●● <i class="bat"></i></span></div>
+  <div class="content">
+    <div class="pad" style="padding-top:62px;display:flex;align-items:center"><div class="h1" style="flex:1;margin:0">Insurance</div><span class="pill b" data-go="add">＋ Add policy</span></div>
+    <div class="card" style="margin-top:14px"><div class="row"><div class="facesm" style="margin:0"><img src="https://images.pexels.com/photos/16659308/pexels-photo-16659308.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop" alt="" style="width:40px;height:40px;border-width:2px"><img src="https://images.pexels.com/photos/18786324/pexels-photo-18786324.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop" alt="" style="width:40px;height:40px;border-width:2px;margin-left:-12px"><img src="https://images.pexels.com/photos/4307713/pexels-photo-4307713.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop" alt="" style="width:40px;height:40px;border-width:2px;margin-left:-12px"></div><div class="grow" style="margin-left:4px"><div class="nm">Faizan, Ammi and Bhai</div><div class="ev">Covered for ₹10 lakh under one family floater.</div></div></div>
+      <div class="btn sm" style="margin-top:14px;background:linear-gradient(135deg,#FF6B6B,#E8463F)" data-go="emergency"><span class="lbl"><svg class="ic s"><use href="#i-alert"/></svg>Emergency card</span><span class="chipi"><svg class="ic"><use href="#i-right"/></svg></span></div></div>
+    <div class="sec">Policies</div>
+    <div class="ticket" data-go="health"><div class="main"><div class="k">Health · Star Health</div><div class="nm">Family floater, ₹10 lakh</div><div class="m">Renews 12 Mar 2027 · ₹18,400 · cashless at Star Health network hospitals</div></div><div class="stub coral"><b>141</b><small>days</small></div></div>
+    <div class="ticket"><div class="main"><div class="k">Appliance protection · HDFC ERGO</div><div class="nm">LG washing machine, Sony TV</div><div class="m">Accidental damage, electrical breakdown · renews 12 Mar 2027</div></div><div class="stub grape"><b>141</b><small>days</small></div></div>
+    <div class="ticket"><div class="main"><div class="k">Life · not added</div><div class="nm">Life cover for Faizan</div><div class="m">If you have a term plan, add it so the family can find it when it matters.</div></div><div class="stub grey"><b>＋</b><small>add</small></div></div>
+    <div class="sec">Worth knowing</div>
+    <div class="card" style="margin-top:0">
+      <div class="cov"><span class="dot" style="background:#F59E0B"></span><div class="grow"><div class="t">Pre-existing diseases</div><div class="m">Covered from 1 Apr 2028, once the waiting period ends</div></div></div>
+      <div class="cov"><span class="dot" style="background:#15803D"></span><div class="grow"><div class="t">Claims are cashless</div><div class="m">Show the Emergency card at any Star Health network hospital</div></div></div>
+      <div class="cov"><span class="dot" style="background:#7C5CFF"></span><div class="grow"><div class="t">Premium reminder set</div><div class="m">12 Feb 2027, a month before renewal</div></div></div>
+    </div>
+    <div class="note" style="text-align:center;margin:14px 20px 100px">Plans and renewals through IRDAI-licensed partners.</div>
+  </div>
+  <div class="tabbar" data-tabs></div>
+  <div class="hi"></div>
+</section>
+
+<!-- 12 HEALTH -->
+<section class="screen" id="s-health" data-cap="08 · Health insurance — who, how much, when">
+  <div class="sb w"><span>9:41</span><span>●●● <i class="bat"></i></span></div>
+  <div class="content">
+    <div class="phero" style="height:300px"><img src="https://images.pexels.com/photos/8055075/pexels-photo-8055075.jpeg?auto=compress&cs=tinysrgb&w=1000" alt=""><div class="veil"></div>
+      <div class="bar"><div class="ib dark" data-back><svg class="ic"><use href="#i-left"/></svg></div><div class="ib dark"><svg class="ic"><use href="#i-more"/></svg></div></div>
+      <div class="txt"><div class="k">Star Health · P/161222/01/2026/0041</div><div class="nm">Family floater</div><div class="md">Faizan, Ammi and Bhai, all on one policy.</div></div></div>
+    <div class="dcard lift"><div class="lab"><i></i>Sum insured</div>
+      <div class="track" data-track="62" style="margin-top:12px"><i></i><b></b></div>
+      <div class="ends"><span>Started<b>12 Mar 2026</b></span><span style="text-align:center">Today<b>22 Oct 2026</b></span><span style="text-align:right">Renews<b>12 Mar 2027</b></span></div>
+      <div class="perf"></div>
+      <div class="stub"><div class="num"><b class="money">₹10,00,000</b></div><div class="fc" style="max-width:160px"><svg class="ic s"><use href="#i-cal"/></svg><span>₹18,400 due in 141 days.</span></div></div></div>
+    <div class="sec">Covered members</div>
+    <div class="people">
+      <div class="pp c1"><div class="im"><img src="https://images.pexels.com/photos/16659308/pexels-photo-16659308.jpeg?auto=compress&cs=tinysrgb&w=160&h=160&fit=crop" alt=""><span class="ok"><svg class="ic"><use href="#i-check"/></svg></span></div>Faizan</div>
+      <div class="pp c2"><div class="im"><img src="https://images.pexels.com/photos/18786324/pexels-photo-18786324.jpeg?auto=compress&cs=tinysrgb&w=160&h=160&fit=crop" alt=""><span class="ok"><svg class="ic"><use href="#i-check"/></svg></span></div>Ammi</div>
+      <div class="pp c3"><div class="im"><img src="https://images.pexels.com/photos/4307713/pexels-photo-4307713.jpeg?auto=compress&cs=tinysrgb&w=160&h=160&fit=crop" alt=""><span class="ok"><svg class="ic"><use href="#i-check"/></svg></span></div>Bhai</div>
+    </div>
+    <div class="card">
+      <div class="cov"><span class="dot" style="background:#F59E0B"></span><div class="grow"><div class="t">Pre-existing diseases</div><div class="m">Covered from 1 Apr 2028 (waiting period)</div></div></div>
+      <div class="cov"><span class="dot" style="background:#15803D"></span><div class="grow"><div class="t">Cashless hospitals</div><div class="m">Opens Star Health's hospital list for your area</div></div><svg class="ic" style="color:var(--ink3)"><use href="#i-right"/></svg></div>
+      <div class="cov"><span class="dot" style="background:#15803D"></span><div class="grow"><div class="t">Room rent, day-care, ambulance</div><div class="m">Covered · see policy wording</div></div><svg class="ic" style="color:var(--ink3)"><use href="#i-right"/></svg></div>
+    </div>
+    <div style="height:12px"></div>
+  </div>
+  <div class="cta"><div class="btns"><div class="btn" style="background:linear-gradient(135deg,#FF6B6B,#E8463F)" data-go="emergency"><span class="lbl"><svg class="ic s"><use href="#i-alert"/></svg>Emergency card</span><span class="chipi"><svg class="ic"><use href="#i-right"/></svg></span></div><div class="btn ghost" style="flex:.7"><span class="lbl">How to claim</span></div></div></div>
+  <div class="hi"></div>
+</section>
+
+<!-- 13 EMERGENCY -->
+<section class="screen emg" id="s-emergency" data-cap="09 · Emergency card — one tap at the hospital desk">
+  <div class="sb w"><span>9:41</span><span>●●● <i class="bat"></i></span></div>
+  <div class="content">
+    <div class="top"><div class="ib dark" data-back><svg class="ic"><use href="#i-left"/></svg></div><div class="t" style="color:#fff">Emergency card</div><div class="ib dark"><svg class="ic"><use href="#i-share"/></svg></div></div>
+    <div class="pad"><div class="note" style="color:rgba(255,255,255,.9);font-size:13.5px;margin-bottom:12px">Show this at the hospital desk. Works offline.</div></div>
+    <div class="card" style="margin-top:0"><div class="k" style="font-size:12px;font-weight:800;color:var(--ink3)">HEALTH POLICY</div><div class="nm" style="font-size:16px;margin-top:3px">Star Health · P/161222/01/2026/0041</div><div class="ev">Family floater · ₹10,00,000 · valid till 12 Mar 2027</div></div>
+    <div class="pad" style="margin-top:12px"><div class="btn white"><span class="lbl"><svg class="ic s"><use href="#i-phone"/></svg>Call TPA · 1800 425 2255</span><span class="chipi"><svg class="ic"><use href="#i-right"/></svg></span></div></div>
+    <div class="card"><div class="srow"><div class="row"><img class="face c1" src="https://images.pexels.com/photos/16659308/pexels-photo-16659308.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop" alt=""><div>Faizan Khan<small>B+ · 29</small></div></div><span class="pill">Primary</span></div>
+      <div class="srow"><div class="row"><img class="face c2" src="https://images.pexels.com/photos/18786324/pexels-photo-18786324.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop" alt=""><div>Ammi<small>O+ · 58 · diabetic</small></div></div></div>
+      <div class="srow"><div class="row"><img class="face c3" src="https://images.pexels.com/photos/4307713/pexels-photo-4307713.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop" alt=""><div>Bhai<small>A+ · 24</small></div></div></div></div>
+    <div class="card row"><div class="face" style="display:flex;align-items:center;justify-content:center;background:var(--coral-soft);color:#B42318;--ringc:#FF6B6B"><svg class="ic"><use href="#i-pin"/></svg></div><div class="grow"><div class="nm" style="font-size:14.5px">Cashless hospitals near you</div><div class="ev">Opens Star Health's network list</div></div><svg class="ic" style="color:var(--ink3)"><use href="#i-right"/></svg></div>
+    <div class="pad" style="margin-top:12px"><div class="btns"><div class="btn sm" style="background:rgba(255,255,255,.2);box-shadow:none"><span class="lbl">Share with family</span></div><div class="btn sm" style="background:rgba(255,255,255,.2);box-shadow:none"><span class="lbl">Open policy PDF</span></div></div></div>
+  </div>
+  <div class="hi w"></div>
+</section>
+
+<!-- 14 REMINDERS -->
+<section class="screen" id="s-reminders" data-cap="18 · Reminders — few, with a reason and an action">
+  <div class="sb"><span>9:41</span><span>●●● <i class="bat"></i></span></div>
+  <div class="content">
+    <div class="top"><div class="ib" data-back><svg class="ic"><use href="#i-left"/></svg></div><div class="t">Reminders</div><span class="pill">Settings</span></div>
+    <div class="sec" style="padding-top:14px">This week</div>
+    <div class="ticket" data-go="product"><div class="main"><div class="k">Samsung fridge</div><div class="nm">Warranty ends in 23 days</div><div class="m">Anything not right? Get it fixed under warranty before 14 Nov.</div><div class="btns" style="margin-top:10px"><div class="btn sm" style="min-height:40px"><span class="lbl">Get it checked</span></div><div class="btn sm ghost" style="min-height:40px"><span class="lbl">Remind me 7 Nov</span></div></div></div><div class="stub sun"><b>23</b><small>days</small></div></div>
+    <div class="ticket"><div class="main"><div class="k">LG washing machine</div><div class="nm">1 free service visit unused</div><div class="m">Included in warranty, expires 2 Jan 2027. Don't waste it.</div><div class="btn sm tw" style="margin-top:10px;min-height:40px"><span class="lbl">Book free service</span><span class="chipi"><svg class="ic"><use href="#i-right"/></svg></span></div></div><div class="stub grape"><b>1</b><small>free</small></div></div>
+    <div class="sec">November</div>
+    <div class="rowi" data-go="product"><div class="th"><img src="https://images.pexels.com/photos/5463580/pexels-photo-5463580.jpeg?auto=compress&cs=tinysrgb&w=200" alt=""></div><div class="grow"><div class="nm">AC service due</div><div class="ev">3 Nov · AMC visit 3 of 4</div></div><span class="pill a">12 days</span></div>
+    <div class="rowi" data-go="product"><div class="th"><img src="https://images.pexels.com/photos/2343467/pexels-photo-2343467.jpeg?auto=compress&cs=tinysrgb&w=200" alt=""></div><div class="grow"><div class="nm">Fridge warranty ends</div><div class="ev">14 Nov</div></div><span class="pill a">23 days</span></div>
+    <div class="sec">March 2027</div>
+    <div class="rowi" data-go="health"><div class="th" style="background:var(--coral-soft)"><svg><use href="#g-health"/></svg></div><div class="grow"><div class="nm">Health insurance renewal</div><div class="ev">12 Mar · ₹18,400</div></div><span class="pill g">141 days</span></div>
+    <div class="rowi"><div class="th" style="background:var(--sun-soft)"><svg><use href="#g-lpg"/></svg></div><div class="grow"><div class="nm">LPG safety inspection</div><div class="ev">Mandatory every 2 years</div></div><span class="pill">~150 d</span></div>
+    <div class="note" style="text-align:center;margin:12px 20px 30px">30 and 7 days before anything expires. Never more than 3 a month.</div>
+  </div>
+  <div class="hi"></div>
+</section>
+
+<!-- 15 FAMILY -->
+<section class="screen" id="s-family" data-cap="07 · Family — one household, shared reminders">
+  <div class="sb w"><span>9:41</span><span>●●● <i class="bat"></i></span></div>
+  <div class="content">
+    <div class="phero" style="height:280px"><img src="https://images.pexels.com/photos/14798018/pexels-photo-14798018.jpeg?auto=compress&cs=tinysrgb&w=1000" alt=""><div class="veil"></div>
+      <div class="txt"><div class="k">Household</div><div class="nm">The Khans</div><div class="md">7 items · everyone sees the same list and reminders</div></div></div>
+    <div class="card" style="margin-top:-18px;position:relative;z-index:2">
+      <div class="srow"><div class="row"><img class="face c1" src="https://images.pexels.com/photos/16659308/pexels-photo-16659308.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop" alt=""><div>Faizan<small>Admin · adds, edits, deletes</small></div></div><span class="pill b">You</span></div>
+      <div class="srow"><div class="row"><img class="face c2" src="https://images.pexels.com/photos/18786324/pexels-photo-18786324.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop" alt=""><div>Ammi<small>Gets reminders · can add</small></div></div><span class="pill g">Member</span></div>
+      <div class="srow"><div class="row"><img class="face c3" src="https://images.pexels.com/photos/4307713/pexels-photo-4307713.jpeg?auto=compress&cs=tinysrgb&w=120&h=120&fit=crop" alt=""><div>Bhai<small>Gets reminders · can add</small></div></div><span class="pill g">Member</span></div>
+      <div class="btn sm tw" style="margin-top:14px"><span class="lbl"><svg class="ic s"><use href="#i-plus"/></svg>Invite with a link or phone number</span><span class="chipi"><svg class="ic"><use href="#i-right"/></svg></span></div></div>
+    <div class="sec">Who gets what</div>
+    <div class="card" style="margin-top:0"><div class="srow"><div>Reminders<small>Everyone, or only the admin</small></div><span class="pill">Everyone</span></div>
+      <div class="srow"><div>Claim help on their behalf<small>Raise complaints for parents' products</small></div><span class="toggle on"></span></div>
+      <div class="srow"><div>WhatsApp reminders<small>Coming soon · you've opted in</small></div><span class="toggle on"></span></div></div>
+    <div class="sec">Your data</div>
+    <div class="card" style="margin-top:0"><div class="srow"><div>Papers stored<small>12 files · encrypted</small></div><svg class="ic" style="color:var(--ink3)"><use href="#i-right"/></svg></div><div class="srow"><div>Download or delete my data</div><svg class="ic" style="color:var(--ink3)"><use href="#i-right"/></svg></div></div>
+    <div style="height:100px"></div>
+  </div>
+  <div class="tabbar" data-tabs></div>
+  <div class="hi"></div>
+</section>
+
+</div></div>
+</div>
+</div>
+
+<script>
+function buoy(r=60,w=36,seam='#F3EFE8'){const cx=100,cy=100,cols=['#FFC53D','#FF6B6B','#14B8A6','#7C5CFF'];let s='';
+  for(let i=0;i<4;i++){const a0=(-135+90*i)*Math.PI/180,a1=a0+Math.PI/2;s+=`<path d="M${cx+r*Math.cos(a0)},${cy+r*Math.sin(a0)} A${r},${r} 0 0 1 ${cx+r*Math.cos(a1)},${cy+r*Math.sin(a1)}" stroke="${cols[i]}" stroke-width="${w}" fill="none"/>`}
+  for(let i=0;i<4;i++){const a=(-135+90*i)*Math.PI/180;s+=`<path d="M${cx+(r-w/2)*Math.cos(a)},${cy+(r-w/2)*Math.sin(a)} L${cx+(r+w/2)*Math.cos(a)},${cy+(r+w/2)*Math.sin(a)}" stroke="${seam}" stroke-width="5" stroke-linecap="round"/>`}
+  return `<svg viewBox="0 0 200 200">${s}</svg>`}
+document.getElementById('lk').innerHTML=`<div style="display:flex;align-items:center;gap:10px"><div style="width:34px">${buoy()}</div><span style="font-weight:800;font-size:17px;letter-spacing:-.01em">alongkeep</span></div>`;
+// tab bars
+const TABS=[['home','i-home','Home'],['things','i-wrench','Things'],['insurance','i-shield','Insurance'],['family','i-users','Family']];
+document.querySelectorAll('[data-tabs]').forEach(bar=>{const cur=bar.closest('.screen').id.replace('s-','');bar.innerHTML=TABS.map(([id,ic,l])=>`<div class="tab ${id===cur?'on':''}" data-go="${id}" data-tab><svg class="ic"><use href="#${ic}"/></svg>${l}</div>`).join('')});
+function countUp(el,to,ms=900){const t0=performance.now();let done=false;const f=t=>{if(done)return;const k=Math.max(0,Math.min(1,(t-t0)/ms));el.textContent=Math.round(to*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(f);else done=true};requestAnimationFrame(f);setTimeout(()=>{done=true;el.textContent=to},ms+80)}
+document.querySelectorAll('.ring').forEach((r,i)=>{const n=+r.dataset.ring,max=+r.dataset.max,col=r.dataset.color;const R=26,Cc=2*Math.PI*R;const frac=Math.max(.06,Math.min(1,n/max));const [g1,g2]=col==='#60A5FA'?['#60A5FA','#8B6CFF']:['#FFC53D','#FF7A59'];
+  r.insertAdjacentHTML('afterbegin',`<svg viewBox="0 0 60 60"><defs><linearGradient id="rg${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${g1}"/><stop offset="1" stop-color="${g2}"/></linearGradient></defs><circle cx="30" cy="30" r="${R}" stroke="rgba(31,42,68,.08)" stroke-width="5" fill="none"/><circle cx="30" cy="30" r="${R}" stroke="url(#rg${i})" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="${Cc}" stroke-dashoffset="${Cc}" style="transition:stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1) .6s"/></svg>`);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{r.querySelector('circle:last-child').style.strokeDashoffset=Cc*(1-frac)}))});
+// per-screen entrance choreography
+function enterFx(id){const s=document.getElementById('s-'+id);if(!s)return;
+  s.querySelectorAll('[data-track]').forEach(tr=>{const v=tr.dataset.track;tr.querySelector('i').style.width='0';tr.querySelector('b').style.left='0';setTimeout(()=>{tr.querySelector('i').style.width=v+'%';tr.querySelector('b').style.left=v+'%'},250)});
+  s.querySelectorAll('[data-count]').forEach(el=>{el.textContent='0';setTimeout(()=>countUp(el,+el.dataset.count,1000),250)});
+  const c=document.getElementById('cnt');if(id==='home'&&c)countUp(c,3,700)}
+// router with history
+const hist=[];let cur='splash';
+function go(id,isTab){if(id===cur||document.body.classList.contains('grid'))return;const from=document.getElementById('s-'+cur),to=document.getElementById('s-'+id);if(!to)return;
+  if(isTab)hist.length=0;else hist.push(cur);
+  from.classList.add('leave');setTimeout(()=>{from.classList.remove('on','leave');to.classList.add('on','enter');const c=to.querySelector('.content');if(c)c.scrollTop=0;setTimeout(()=>to.classList.remove('enter'),400);enterFx(id)},220);
+  cur=id;document.querySelectorAll('.side a').forEach(a=>a.classList.toggle('on',a.dataset.go===id))}
+window.go=go;
+function back(){const p=hist.pop();go(p||'home')}
+document.addEventListener('click',e=>{if(e.target.closest('[data-back]'))return back();const g=e.target.closest('[data-go]');if(g)go(g.dataset.go,g.hasAttribute('data-tab')||!!g.closest('.side'))});
+document.getElementById('s-splash').addEventListener('click',()=>{if(cur==='splash')go('welcome')});
+// grid: one phone per screen
+document.getElementById('bGrid').onclick=()=>{document.body.classList.add('grid');bGrid.classList.add('on');bPhone.classList.remove('on');const canvasEl=document.getElementById('canvas');const app=document.getElementById('app');
+  [...app.querySelectorAll(':scope > .screen')].forEach(sc=>{const ph=document.createElement('div');ph.className='phone';const ap=document.createElement('div');ap.className='app';ph.appendChild(ap);ap.appendChild(sc);const cap=document.createElement('div');cap.className='cap';cap.textContent=sc.dataset.cap||sc.id;ph.appendChild(cap);canvasEl.appendChild(ph);sc.classList.add('on');enterFx(sc.id.replace('s-',''))});
+  document.getElementById('ph1').remove()};
+document.getElementById('bPhone').onclick=()=>{location.hash='';location.reload()};
+if(location.hash==='#grid')setTimeout(()=>bGrid.click(),300);
+// splash wordmark letters
+const word=document.getElementById('word');'alongkeep'.split('').forEach((ch,i)=>{const sp=document.createElement('span');sp.textContent=ch;if(i>=5)sp.style.color='#0F766E';word.appendChild(sp)});
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
+import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
+window.__gl={splash:0,home:0,product:0};
+const DPR=Math.min(2,window.devicePixelRatio||1);
+const easeOutBack=k=>{const c=1.70158;return 1+(c+1)*Math.pow(k-1,3)+c*Math.pow(k-1,2)};
+const easeInOut=k=>k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2;
+
+/* ================= SPLASH: the lifebuoy assembles ================= */
+(function(){
+  const host=document.getElementById('s-splash');const W=390,H=844;
+  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(DPR);renderer.setSize(W,H);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.0;
+  host.insertBefore(renderer.domElement,host.firstChild);
+  const scene=new THREE.Scene();const pm=new THREE.PMREMGenerator(renderer);scene.environment=pm.fromScene(new RoomEnvironment(),0.04).texture;scene.environmentIntensity=.9;
+  const camera=new THREE.PerspectiveCamera(30,W/H,0.1,50);camera.position.set(0,1.0,15.5);camera.lookAt(0,0.95,0);
+  scene.add(new THREE.HemisphereLight(0xffffff,0xd9c4a3,0.5));const key=new THREE.DirectionalLight(0xfff3df,1.3);key.position.set(2,4,3);scene.add(key);
+  const cols=[0xFFC53D,0xFF6B6B,0x14B8A6,0x7C5CFF];const ring=new THREE.Group();ring.position.y=2.0;scene.add(ring);
+  const segs=cols.map((c,i)=>{const g=new THREE.Group();const m=new THREE.Mesh(new THREE.TorusGeometry(1.15,0.42,28,48,Math.PI/2),new THREE.MeshPhysicalMaterial({color:c,roughness:.42,clearcoat:.5,clearcoatRoughness:.35}));
+    m.rotation.z=(-135+90*i)*Math.PI/180;g.add(m);ring.add(g);return g});
+  // white seams at the four joints + rope dots
+  const seamMat=new THREE.MeshStandardMaterial({color:0xFFFFFF,roughness:.5});
+  for(let i=0;i<4;i++){const a=(-135+90*i)*Math.PI/180;const s=new THREE.Mesh(new RoundedBoxGeometry(0.16,0.96,0.96,3,0.06),seamMat);s.position.set(Math.cos(a)*1.15,Math.sin(a)*1.15,0);s.rotation.z=a;ring.add(s)}
+  const dotMat=new THREE.MeshStandardMaterial({color:0xFFFFFF,roughness:.6});
+  for(let i=0;i<24;i++){const a=i/24*Math.PI*2;const d=new THREE.Mesh(new THREE.SphereGeometry(0.035,10,8),dotMat);d.position.set(Math.cos(a)*1.15,Math.sin(a)*1.15,0.43);ring.add(d)}
+  const shadow=new THREE.Mesh(new THREE.CircleGeometry(1.5,48),new THREE.MeshBasicMaterial({color:0x1F2A44,transparent:true,opacity:.07}));shadow.rotation.x=-Math.PI/2;shadow.position.set(0,0.2,0);scene.add(shadow);
+  // choreography: 0-1.1s segments fly in with overshoot; 1.2-2.4 one spin; letters pop at 1.3; tagline 2.1; auto-advance 3.4
+  let tAcc=0,last=null,advanced=false;   // accumulate visible time only, so a hidden tab doesn't skip the show
+  const letters=[...document.querySelectorAll('#word span')];
+  function frame(now){if(last!==null)tAcc+=Math.min(50,now-last);last=now;const t=tAcc/1000;
+    segs.forEach((g,i)=>{const k=Math.max(0,Math.min(1,(t-i*0.12)/0.75));const e=easeOutBack(k);const a=(-90+90*i)*Math.PI/180;const d=(1-e)*3.2;g.position.set(Math.cos(a)*d,Math.sin(a)*d,(1-e)*1.5);g.rotation.z=(1-e)*1.2;g.scale.setScalar(0.6+0.4*e)});
+    const sk=Math.max(0,Math.min(1,(t-1.15)/1.25));ring.rotation.y=easeInOut(sk)*Math.PI*2;ring.rotation.x=Math.sin(t*0.9)*0.08;ring.position.y=2.0+Math.sin(t*1.6)*0.05;
+    if(t>1.3)letters.forEach((l,i)=>{if(!l.classList.contains('in')&&t>1.3+i*0.06)l.classList.add('in')});
+    if(t>2.1)document.getElementById('stag').classList.add('in');
+    if(t>3.6&&!advanced&&!document.body.classList.contains('grid')){advanced=true;window.go('welcome')}
+    renderer.render(scene,camera);window.__gl.splash++;requestAnimationFrame(frame)}
+  requestAnimationFrame(frame);
+})();
+
+/* ================= HOME: daylight room ================= */
+(function(){
+  const host=document.getElementById('hero3d');const W=358,H=300;
+  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(DPR);renderer.setSize(W,H);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=0.82;
+  host.insertBefore(renderer.domElement,host.firstChild);
+  const scene=new THREE.Scene();const pm=new THREE.PMREMGenerator(renderer);scene.environment=pm.fromScene(new RoomEnvironment(),0.04).texture;scene.environmentIntensity=0.3;
+  const camera=new THREE.PerspectiveCamera(26,W/H,0.1,100);const camBase=new THREE.Vector3(10.2,7.6,7.8);camera.position.copy(camBase);const target=new THREE.Vector3(-0.2,0.9,-0.6);
+  scene.add(new THREE.HemisphereLight(0xfff6e8,0xd9c4a3,0.35));
+  const sun=new THREE.DirectionalLight(0xfff1d6,1.25);sun.position.set(2.5,6,3.5);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.bias=-0.0008;sun.shadow.normalBias=0.02;Object.assign(sun.shadow.camera,{left:-5,right:5,top:5,bottom:-5,near:1,far:20});scene.add(sun);
+  const fill=new THREE.PointLight(0xffe2c4,0.35,12);fill.position.set(-1,2.6,2.5);scene.add(fill);
+  const M=(c,o={})=>new THREE.MeshStandardMaterial({color:c,roughness:.75,metalness:0,...o});
+  const box=(w,h,d,r,mat,x,y,z,cs=true)=>{const m=new THREE.Mesh(new RoundedBoxGeometry(w,h,d,4,r),mat);m.position.set(x,y,z);m.castShadow=cs;m.receiveShadow=true;scene.add(m);return m};
+  const floor=new THREE.Mesh(new THREE.PlaneGeometry(6.4,5.4),M(0xD8B98F,{roughness:.6}));floor.rotation.x=-Math.PI/2;floor.position.set(0.2,0,-0.2);floor.receiveShadow=true;scene.add(floor);
+  for(let i=-3;i<=3;i++){const l=new THREE.Mesh(new THREE.BoxGeometry(0.02,0.004,5.4),M(0xC4A376));l.position.set(0.2+i*0.9,0.003,-0.2);scene.add(l)}
+  const wallMat=M(0xF4ECDD,{roughness:.9});
+  const back=new THREE.Mesh(new THREE.BoxGeometry(6.4,2.9,0.12),wallMat);back.position.set(0.2,1.45,-2.96);back.receiveShadow=true;scene.add(back);
+  const left=new THREE.Mesh(new THREE.BoxGeometry(0.12,2.9,5.4),wallMat);left.position.set(-3.06,1.45,-0.2);left.receiveShadow=true;scene.add(left);
+  const skirt=M(0xE3D6C2);[[0.2,0.08,-2.88,6.4,0.16,0.06],[-2.98,0.08,-0.2,0.06,0.16,5.4]].forEach(([x,y,z,w,h,d])=>{const s=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),skirt);s.position.set(x,y,z);scene.add(s)});
+  const win=new THREE.Mesh(new THREE.PlaneGeometry(1.5,1.1),new THREE.MeshBasicMaterial({color:0xCFE8FF}));win.position.set(1.4,1.75,-2.89);scene.add(win);
+  const frameMat=M(0xFFFFFF);[[1.4,2.32,1.62,0.06],[1.4,1.18,1.62,0.06]].forEach(([x,y,w,h])=>{const f=new THREE.Mesh(new THREE.BoxGeometry(w,h,0.06),frameMat);f.position.set(x,y,-2.88);scene.add(f)});
+  [[0.62,1.75],[2.18,1.75],[1.4,1.75]].forEach(([x,y])=>{const f=new THREE.Mesh(new THREE.BoxGeometry(0.06,1.16,0.06),frameMat);f.position.set(x,y,-2.88);scene.add(f)});
+  const steel=new THREE.MeshStandardMaterial({color:0xE6EBF2,metalness:.55,roughness:.35});
+  box(0.82,1.85,0.72,0.05,steel,-2.3,0.925,-2.2);box(0.02,0.012,0.74,0.003,M(0x8A96A8),-2.3,1.25,-2.2,false);box(0.03,0.42,0.03,0.01,M(0x6B7A94),-1.96,1.6,-1.82,false);box(0.03,0.7,0.03,0.01,M(0x6B7A94),-1.96,0.75,-1.82,false);
+  box(0.62,0.85,0.62,0.05,M(0xF7F8FA,{roughness:.5}),-1.35,0.425,-2.25);
+  const door=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,0.03,40),new THREE.MeshStandardMaterial({color:0x1F2A44,metalness:.3,roughness:.4}));door.rotation.x=Math.PI/2;door.position.set(-1.35,0.4,-1.93);scene.add(door);
+  const glass=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,0.01,40),new THREE.MeshPhysicalMaterial({color:0x9EE9DD,transmission:.6,roughness:.1,thickness:.2}));glass.rotation.x=Math.PI/2;glass.position.set(-1.35,0.4,-1.915);scene.add(glass);
+  const lpg=new THREE.Mesh(new THREE.CylinderGeometry(0.21,0.21,0.72,40),M(0xE0453F,{roughness:.45}));lpg.position.set(-0.55,0.36,-2.35);lpg.castShadow=true;lpg.receiveShadow=true;scene.add(lpg);
+  const cap=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.07,0.1,24),M(0x9C2E2A));cap.position.set(-0.55,0.77,-2.35);scene.add(cap);
+  box(0.36,0.46,0.22,0.03,M(0xF7F8FA),-0.55,1.5,-2.78);box(1.05,0.3,0.24,0.04,M(0xF7F8FA),2.0,2.25,-2.76);box(0.9,0.02,0.02,0.005,M(0x60A5FA),2.0,2.12,-2.63,false);
+  box(0.05,0.68,1.15,0.01,M(0x151B2B,{metalness:.2,roughness:.5}),-2.97,1.45,0.2);
+  const screen=new THREE.Mesh(new THREE.PlaneGeometry(1.05,0.58),new THREE.MeshBasicMaterial({color:0x5FD6C5}));screen.rotation.y=Math.PI/2;screen.position.set(-2.94,1.45,0.2);scene.add(screen);
+  const fabric=M(0x2E8F84,{roughness:.95});
+  box(1.9,0.42,0.85,0.08,fabric,0.9,0.21,0.9);box(1.9,0.5,0.22,0.07,fabric,0.9,0.67,0.58);box(0.22,0.45,0.85,0.06,fabric,-0.04,0.6,0.9);box(0.22,0.45,0.85,0.06,fabric,1.84,0.6,0.9);
+  box(0.8,0.16,0.7,0.06,M(0xF2C6A0,{roughness:.95}),0.5,0.5,0.95);box(0.8,0.16,0.7,0.06,M(0xFFE1B0,{roughness:.95}),1.3,0.5,0.95);
+  const rug=new THREE.Mesh(new THREE.CylinderGeometry(1.15,1.15,0.015,48),M(0xF0A58C,{roughness:1}));rug.position.set(0.6,0.008,0.3);rug.receiveShadow=true;scene.add(rug);
+  const pot=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.17,0.38,24),M(0xC98A5A));pot.position.set(2.5,0.19,-2.2);pot.castShadow=true;scene.add(pot);
+  const leaf=M(0x3F9A6E,{roughness:.8});[[0,0.75,0,0.3],[-0.2,0.62,0.12,0.22],[0.22,0.66,-0.1,0.24],[0.05,0.95,0.12,0.2]].forEach(([dx,dy,dz,r])=>{const s=new THREE.Mesh(new THREE.SphereGeometry(r,20,16),leaf);s.position.set(2.5+dx,dy,-2.2+dz);s.castShadow=true;scene.add(s)});
+  const hotDefs=[{p:[-2.3,2.1,-2.2],c:0xFFB020,cls:'a',l:'Fridge',n:'23d',go:'product'},{p:[2.0,2.62,-2.76],c:0xFFB020,cls:'a',l:'AC',n:'12d',go:'product'},{p:[-0.55,1.0,-2.35],c:0x60A5FA,cls:'b',l:'LPG',n:'4d',go:'home'}];
+  const hots=hotDefs.map(h=>{const m=new THREE.Mesh(new THREE.SphereGeometry(0.06,20,16),new THREE.MeshBasicMaterial({color:h.c}));m.position.set(...h.p);scene.add(m);const halo=new THREE.Mesh(new THREE.SphereGeometry(0.11,20,16),new THREE.MeshBasicMaterial({color:h.c,transparent:true,opacity:.25}));halo.position.copy(m.position);scene.add(halo);
+    const el=document.createElement('div');el.className='hot '+h.cls;el.dataset.go=h.go;el.innerHTML=`<div class="chip"><i></i>${h.l} <b>${h.n}</b></div><div class="stem"></div>`;host.appendChild(el);return {m,halo,el}});
+  const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));composer.addPass(new UnrealBloomPass(new THREE.Vector2(W,H),0.32,0.45,0.96));composer.addPass(new OutputPass());
+  let yaw=0,pitch=0,tyaw=0,tpitch=0,drag=null;
+  host.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,yaw:tyaw,pitch:tpitch}});
+  window.addEventListener('pointermove',e=>{if(!drag)return;tyaw=drag.yaw+(e.clientX-drag.x)*0.004;tpitch=drag.pitch+(e.clientY-drag.y)*0.002;tyaw=Math.max(-.45,Math.min(.45,tyaw));tpitch=Math.max(-.12,Math.min(.18,tpitch))});
+  window.addEventListener('pointerup',()=>drag=null);
+  const v=new THREE.Vector3();const t0=performance.now();
+  function frame(now){const t=(now-t0)/1000;yaw+=(tyaw-yaw)*.08;pitch+=(tpitch-pitch)*.08;const sway=drag?0:Math.sin(t*0.35)*0.10;const a=yaw+sway,b=pitch;const r=Math.hypot(camBase.x,camBase.z),base=Math.atan2(camBase.x,camBase.z);
+    camera.position.set(Math.sin(base+a)*r,camBase.y+b*4,Math.cos(base+a)*r);camera.lookAt(target);
+    hots.forEach((h,i)=>{const s=1+Math.sin(t*2+i)*0.18;h.halo.scale.setScalar(s);v.copy(h.m.position).project(camera);h.el.style.left=Math.max(13,Math.min(87,(v.x+1)/2*100))+'%';h.el.style.top=((1-v.y)/2*100-1)+'%';if(t>0.6+i*0.12)h.el.classList.add('show')});
+    composer.render();window.__gl.home++;requestAnimationFrame(frame)}
+  requestAnimationFrame(frame);
+})();
+
+</script>
+</body>
+</html>
