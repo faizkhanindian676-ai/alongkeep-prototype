@@ -1871,7 +1871,7 @@ const easeInOut=k=>k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2;
 /* ================= SPLASH: CSS does the drawing; auto-advance on visible time ================= */
 (function(){let tAcc=0,last=null,advanced=false;
   function frame(now){if(last!==null)tAcc+=Math.min(50,now-last);last=now;
-    if(tAcc>2300&&!advanced&&!document.body.classList.contains('grid')){advanced=true;window.go('welcome')}
+    if(tAcc>2300&&!advanced&&!document.body.classList.contains('grid')){advanced=true;if(cur==='splash')window.go('welcome')}
     if(!advanced)requestAnimationFrame(frame)}
   requestAnimationFrame(frame)})();
 
